@@ -1,0 +1,175 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resourceppc.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#include "resdefce.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_CLIENT              ICON                    "client.ico"
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resourceppc.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#include ""resdefce.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)\r\n"
+    "LANGUAGE 9, 1\r\n"
+    "#pragma code_page(1251)\r\n"
+    "#include ""clientppc.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDS_APP_TITLE           "People's Note"
+    IDC_CLIENT              "CLIENT"
+    IDS_SYNC                "Sync"
+    IDS_MAIN_MENU           "Menu"
+    IDS_REGISTRY_KEY        "Software\\People's Note"
+    IDS_DOC_FOLDER          "People's Note"
+    IDC_NOTE_VIEW           "NOTE-VIEW"
+    IDS_CLOSE               "Close"
+    IDC_CREDENTIALS_VIEW    "CREDENTIALS-VIEW"
+    IDS_SIGNIN              "Sign in"
+    IDS_CANCEL              "Cancel"
+    IDC_ABOUT_VIEW          "ABOUT-VIEW"
+    IDC_NOTE_EDIT           "NOTE-EDIT"
+    IDC_PROFILE_VIEW        "PROFILE-VIEW"
+END
+
+STRINGTABLE 
+BEGIN
+    IDS_OK                  "OK"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (Canada) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENC)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_CAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// HTML
+//
+
+ABOUT.HTM               HTML                    "html\\about.htm"
+CLEAR.PNG               HTML                    "html\\clear.png"
+CARD_TOP.PNG            HTML                    "html\\card-top.png"
+CORNER.PNG              HTML                    "html\\corner.png"
+EDIT.PNG                HTML                    "html\\edit.png"
+FILE_NOTE.PNG           HTML                    "html\\file-note.png"
+GRADIENT_60.PNG         HTML                    "html\\gradient-60.png"
+GRADIENT_64.PNG         HTML                    "html\\gradient-64.png"
+HOME.PNG                HTML                    "html\\home.png"
+INPUTSHADOW.PNG         HTML                    "html\\inputshadow.png"
+MAIN.HTM                HTML                    "html\\main.htm"
+MENU.CSS                HTML                    "html\\menu.css"
+NOTE_VIEW.HTM           HTML                    "html\\note-view.htm"
+NOTE_EDIT.HTM           HTML                    "html\\note-edit.htm"
+PHOTO_NOTE.PNG          HTML                    "html\\photo-note.png"
+PROFILE.HTM             HTML                    "html\\profile.htm"
+REFLECTION_48.PNG       HTML                    "html\\reflection-48.png"
+RT_CHECK.PNG            HTML                    "html\\rt-check.png"
+RT_COPY.PNG             HTML                    "html\\rt-copy.png"
+RT_EM.PNG               HTML                    "html\\rt-em.png"
+RT_INDENT_DEC.PNG       HTML                    "html\\rt-indent-dec.png"
+RT_INDENT_INC.PNG       HTML                    "html\\rt-indent-inc.png"
+RT_LI_OL.PNG            HTML                    "html\\rt-li-ol.png"
+RT_LI_UL.PNG            HTML                    "html\\rt-li-ul.png"
+RT_PASTE.PNG            HTML                    "html\\rt-paste.png"
+RT_REDO.PNG             HTML                    "html\\rt-redo.png"
+RT_STRONG.PNG           HTML                    "html\\rt-strong.png"
+RT_U.PNG                HTML                    "html\\rt-u.png"
+RT_UNDO.PNG             HTML                    "html\\rt-undo.png"
+SEARCH.PNG              HTML                    "html\\search.png"
+SIGNIN_VIEW.HTM         HTML                    "html\\signin-view.htm"
+STATUS_GRAY.PNG         HTML                    "html\\status-gray.png"
+STATUS_GREEN.PNG        HTML                    "html\\status-green.png"
+SYNC.PNG                HTML                    "html\\sync.png"
+TEXT_NOTE.PNG           HTML                    "html\\text-note.png"
+VIEW_FULLSCREEN.PNG     HTML                    "html\\view-fullscreen.png"
+VIEW_RESTORE.PNG        HTML                    "html\\view-restore.png"
+VOICE_NOTE.PNG          HTML                    "html\\voice-note.png"
+ZOOM_IN.PNG             HTML                    "html\\zoom-in.png"
+ZOOM_OUT.PNG            HTML                    "html\\zoom-out.png"
+#endif    // English (Canada) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+LANGUAGE 9, 1
+#pragma code_page(1251)
+#include "clientppc.rc2"  // non-Microsoft Visual C++ edited resources
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

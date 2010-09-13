@@ -1,0 +1,108 @@
+user management
+	√ when the program starts, the last user is loaded
+	√ when there is no last user, the anonymous user is loaded
+	√ when the anonymous user is not available, create him
+	√ when the anonymous user is loaded, the menu should contain a "sign in" option
+	√ when a named user is loaded, the menu should contain a "sign out" option
+	√ when the user signs in, the anonymous account is unloaded
+	√ when signing into an existing account, load the new account
+	√ when signing into a new account, rename the anonymous account
+	when the program is closed, the user name is stored in the registry
+sign in window
+	√ when the window is displayed, the user should be able to enter username and password, accept, or cancel
+	√ when the user chooses to accept, the username and password should be verified
+	√ when the user tries to sign in with invalid credentials, a message should be displayed and the password cleared
+	√ when the user signs in with valid credentials, the window should close
+	√ when the user presses "enter" in the username field, the focus should move to the password field
+	√ when the user presses "enter" in the password field, signing in should be attempted
+	√ when the user presses "esc", signing in should be cancelled
+note creation
+	√ when the user clicks the new-text button, a text note creation screen should be displayed
+	when the user clicks the new-voice button, audio recording should start
+		the audio should be compressed
+	when the user clicks the new-photo button, the camera should be activated
+	when the user clicks the new-file button, a file selection dialog should show up
+		the file selection dialog should default to the photos folder
+	√ when a note is created, it should be added to the note list and persisted
+	√ when creation is aborted, no note should be created
+sync
+	√ when the sync button is pressed, sync should begin
+	√ when sync completes, the note list should be updated
+	√ when the user signs in, the number of unsynced items should be displayed on the sync button
+		unsynced notebooks
+		unsynced tags
+		unsynced notes in the active notebook
+	√ when the active notebook is changed, the number of unsynced items should be updated
+	√ when syncing, the number of unsynced items should be updated
+	when connection is lost, sync is stopped and disabled
+	when sync is impossible, the sync button should be disabled
+		√ sync in progress
+		no connection
+	when EN rejects the user's password at sync, the signin screen should be displayed with his username
+		the username should be read-only
+	when sync is in progress, prevent the device from going into standby mode
+search
+	√ when the user searches for a non-empty string, notebook should be filtered by full-text search
+	√ when the user searches for an empty string or whitespace, the note list should be reset
+note list navigation
+	√ when the user clicks on a note while the note list is still, note view for it should open up
+	√ when the user clicks on the note list while it is scrolling, the scrolling should stop
+	√ when the user flicks the note list, it should receive scrolling momentum
+	√ when the search box is focused, the virtual keyboard should be visible
+	√ when the search box is not focused, the virtual keyboard should not be visible
+	√ when the user presses "enter" in the search box, search for the text in the text box
+	√ when the user presses the search button in the search box, search for the text in the text box
+note list paging
+	√ when a next page is available, the "later notes" link should be added to the end of the list
+	√ when a previous page is available, the "earlier notes" link should be added to the beginning of the list
+	√ when the "later notes" link is clicked, the next page should be set as the note list
+	√ when the "earlier notes" link is clicked, the previous page should be set as the note list
+note view
+	√ when the user signs in, the list of notebooks should be filled in
+	when the user flicks the note left, the next note should be displayed
+		unless the note is the last
+	when the user flicks the note right, the previous note should be displayed
+		unless the note is the first
+	√ when the user clicks a TODO checkbox, the checkbox should be toggled
+	when a TODO checkbox is ticked, a "reset" button should appear
+	√ when a note is closed, the TODO checkbox state is persisted
+	√ when a note is closed, its thumbnail should be updated
+notebooks
+	√ when a user without a notebook is loaded, an empty default notebook should be created
+	√ when the user changes notebooks, search should be cleared and the note list filled from the new notebook
+		notebook choice should be persisted
+	√ when the user changes notebooks, the main window title should be set to notebook name
+about
+	√ when the user selects "about" from the menu, the "about" window should be shown
+	√ when the user presses Esc, the "about" window should close
+storage
+	√ when a set of notes is needed, their attributes are loaded from the database
+	when a note's contest is needed, it is loaded from the database
+	√ when a note is added, it is stored in the database
+database
+	√ when file does not exist, create a new one for the current version
+	when the file exists and has a lesser version, convert it to current version
+	when the file exists and has a greater version, refuse to open it
+	√ when the file exists and has the correct version, use it
+	√ when a database for a named user cannot be opened, switch to the default user
+	when a database for the default user cannot be opened, show an error message and quit
+Evernote import
+	√ when the "Import" menu option is selected, dispaly an ".enex" file open dialog
+	√ when an .enex file is imported, add the notes from it to the last used notebook
+	when notes are imported, the sync counter should be updated
+text note viewing
+	when an HTTP url is clicked, open it in the browser
+text note editing
+	when the screen is tilted, the editor should rotate
+	√ when the "full screen" button is clicked, the note should expand to full screen
+	√ when the "collapse" button is clicked, the note should restore from full screen
+	when a new note is open, the title screen should say "New note in %notebook%"
+	when the editable surface is selected, enable the toolbar
+	when anything, but the editable surface is selected, disable the toolbar
+	when the note is unchanged, the "OK" button should be disabled
+	when the note is changed, the "OK" button should be enabled
+instrumentation
+	√ when an animation is completed, display the result in the status bar
+profile view
+	√ when the user selects the profile name from the menu, the "profile" window should be shown
+	√ when the user presses Esc, the profile window should close

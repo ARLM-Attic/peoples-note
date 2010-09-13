@@ -1,0 +1,589 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="480"
+   height="640"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.47 r22583"
+   sodipodi:docname="edit.svg"
+   inkscape:export-filename="C:\Users\Alexey\Files\Programming\Evernote client\gfx\edit.png"
+   inkscape:export-xdpi="360"
+   inkscape:export-ydpi="360">
+  <defs
+     id="defs4">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 320 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="480 : 320 : 1"
+       inkscape:persp3d-origin="240 : 213.33333 : 1"
+       id="perspective51" />
+    <linearGradient
+       id="linearGradient3946">
+      <stop
+         style="stop-color:#e0e0e0;stop-opacity:1;"
+         offset="0"
+         id="stop3948" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="1"
+         id="stop3950" />
+    </linearGradient>
+    <linearGradient
+       gradientTransform="matrix(1.0077837,0,0,1.0077837,-685.11727,-194.87926)"
+       y2="993.08887"
+       x2="379.32834"
+       y1="1051.8317"
+       x1="379.32834"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient3062"
+       xlink:href="#linearGradient3946"
+       inkscape:collect="always" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3946"
+       id="linearGradient3745"
+       x1="-177.02544"
+       y1="653.14783"
+       x2="-177.02544"
+       y2="588.1322"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3946"
+       id="linearGradient3753"
+       x1="892.76532"
+       y1="885.58661"
+       x2="892.76532"
+       y2="820.58478"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3946"
+       id="linearGradient4194"
+       x1="234.99988"
+       y1="528.36218"
+       x2="234.99988"
+       y2="464.36218"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1.0212761,0,0,1,2.5559324e-4,0)" />
+    <inkscape:perspective
+       id="perspective4250"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3946-6"
+       id="linearGradient4194-2"
+       x1="234.99988"
+       y1="528.36218"
+       x2="234.99988"
+       y2="464.36218"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       id="linearGradient3946-6">
+      <stop
+         style="stop-color:#e0e0e0;stop-opacity:1;"
+         offset="0"
+         id="stop3948-0" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="1"
+         id="stop3950-4" />
+    </linearGradient>
+    <linearGradient
+       gradientTransform="matrix(1.0212761,0,0,1,2.6244003e-4,63.999998)"
+       y2="464.36218"
+       x2="234.99988"
+       y1="528.36218"
+       x1="234.99988"
+       gradientUnits="userSpaceOnUse"
+       id="linearGradient4259"
+       xlink:href="#linearGradient3946-6"
+       inkscape:collect="always" />
+    <inkscape:perspective
+       id="perspective4344"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4358"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4400"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4414"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4428"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4442"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4456"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4470"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4484"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4498"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4512"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective4526"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <inkscape:perspective
+       id="perspective3070"
+       inkscape:persp3d-origin="0.5 : 0.33333333 : 1"
+       inkscape:vp_z="1 : 0.5 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_x="0 : 0.5 : 1"
+       sodipodi:type="inkscape:persp3d" />
+    <linearGradient
+       id="linearGradient3946-4">
+      <stop
+         style="stop-color:#e0e0e0;stop-opacity:1;"
+         offset="0"
+         id="stop3948-6" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="1"
+         id="stop3950-0" />
+    </linearGradient>
+    <filter
+       color-interpolation-filters="sRGB"
+       inkscape:collect="always"
+       id="filter3866"
+       x="-0.029261379"
+       width="1.0585228"
+       y="-0.21810491"
+       height="1.4362098">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="5.3645859"
+         id="feGaussianBlur3868" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.93338095"
+     inkscape:cx="-26.253699"
+     inkscape:cy="306.72692"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     borderlayer="false"
+     inkscape:showpageshadow="true"
+     inkscape:snap-bbox="true"
+     inkscape:snap-bbox-edge-midpoints="false"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-midpoints="false"
+     inkscape:snap-grids="false"
+     showguides="false"
+     inkscape:guide-bbox="true"
+     inkscape:window-width="1680"
+     inkscape:window-height="1030"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:snap-global="true"
+     inkscape:snap-page="false"
+     inkscape:bbox-paths="true"
+     inkscape:object-nodes="false"
+     inkscape:object-paths="true"
+     inkscape:snap-to-guides="false">
+    <inkscape:grid
+       type="xygrid"
+       id="grid2820"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true"
+       color="#0000ff"
+       opacity="0.0627451"
+       empcolor="#0000ff"
+       empopacity="0.0627451" />
+    <sodipodi:guide
+       orientation="1,0"
+       position="10,639"
+       id="guide3646" />
+    <sodipodi:guide
+       orientation="1,0"
+       position="470,662"
+       id="guide3648" />
+    <sodipodi:guide
+       orientation="0,1"
+       position="315,630"
+       id="guide3650" />
+    <sodipodi:guide
+       orientation="0,1"
+       position="177,10"
+       id="guide3652" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-412.36218)">
+    <g
+       id="g4642"
+       transform="translate(-2.5027155e-4,2.6171874e-6)">
+      <rect
+         y="592.367"
+         x="-2.3437497e-07"
+         height="58.5"
+         width="480.00024"
+         id="rect3922"
+         style="fill:#ffffff;fill-opacity:1;stroke:none" />
+      <path
+         sodipodi:nodetypes="cccccccccc"
+         clip-path="none"
+         id="rect3016"
+         d="m 0,592.36218 0,59.03125 480.00025,0.005 0,-59.03125 L 0,592.36218 z m 10,10.03125 460.00025,0.005 0,40 L 10,642.39343 l 0,-40 z"
+         style="fill:#000000;fill-opacity:1;stroke:none;filter:url(#filter3866)" />
+      <path
+         sodipodi:nodetypes="cccccccccc"
+         id="rect3045"
+         d="m 0,592.367 0,59.03125 480.00025,0 0,-59.03125 L 0,592.367 z m 10,10.03125 460.00025,0 0,40 -460.00025,0 0,-40 z"
+         clip-path="none"
+         style="fill:#f0ec40;fill-opacity:1;stroke:none" />
+    </g>
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke:none"
+       id="rect4651"
+       width="470"
+       height="400.96393"
+       x="-0.00025027155"
+       y="651.39825" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot2904"
+       style="font-size:29px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:justify;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;font-family:Tahoma;-inkscape-font-specification:Tahoma"
+       transform="matrix(1,0,0,0.94923058,-165.54322,845.38897)"><flowRegion
+         id="flowRegion2906"><rect
+           id="rect2908"
+           width="448.50183"
+           height="394.4942"
+           x="173.64746"
+           y="-195.85144"
+           style="text-align:justify;text-anchor:start"
+           ry="0" /></flowRegion><flowPara
+         id="flowPara2910">Lorem ipsum dolor sit amet, nunc arcu. Nibh euismod. Condimentum turpis scelerisque. Proin porta porta. Mauris dictum, faucibus aliquet laoreet.</flowPara><flowPara
+         id="flowPara2912" /><flowPara
+         id="flowPara2914">Eu vitae dui. Conubia non feugiat, nullam tristique, consectetuer et ornare. Morbi quis nisl. Sed in, nibh vestibulum. Aliquam at. Auctor arcu.</flowPara><flowPara
+         id="flowPara2916" /><flowPara
+         id="flowPara2918">Dignissim hymenaeos, risus wisi, pede lorem. Elit vulputate nec. Volutpat purus, eget sodales, arcu ut. Eaque nullam, adipiscing ac. Massa convallis amet, tincidunt est, feugiat sed dui.</flowPara><flowPara
+         id="flowPara2920" /></flowRoot>    <g
+       id="g2924"
+       transform="translate(-460.53861,166.77557)">
+      <rect
+         rx="12.5"
+         inkscape:export-ydpi="360"
+         inkscape:export-xdpi="360"
+         inkscape:export-filename="C:\Users\Alexey\Files\Programming\Evernote client\gfx\render.png"
+         ry="12.5"
+         y="821.08661"
+         x="865.81134"
+         height="64"
+         width="64"
+         id="rect2832-4-1"
+         style="fill:url(#linearGradient3753);fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+      <image
+         sodipodi:absref="C:\Users\Alexey\Files\Programming\Evernote client\gfx\icons/view-fullscreen.png"
+         xlink:href="icons/view-fullscreen.png"
+         y="825.08661"
+         x="869.81134"
+         id="image2997"
+         height="56"
+         width="56" />
+    </g>
+    <g
+       id="g2928"
+       transform="translate(206.75606,399.21435)">
+      <rect
+         rx="12.5"
+         inkscape:export-ydpi="360"
+         inkscape:export-xdpi="360"
+         inkscape:export-filename="C:\Users\Alexey\Files\Programming\Evernote client\gfx\render.png"
+         ry="12.5"
+         y="588.64783"
+         x="-206.25606"
+         height="64"
+         width="64"
+         id="rect2832-4"
+         style="fill:url(#linearGradient3745);fill-opacity:1;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+      <image
+         sodipodi:absref="C:\Users\Alexey\Files\Programming\Evernote client\gfx\icons/home.png"
+         xlink:href="icons/home.png"
+         y="592.64783"
+         x="-202.25606"
+         id="image3011"
+         height="56"
+         width="56" />
+    </g>
+    <g
+       id="g2929"
+       transform="matrix(1,0,0,0.78097269,148.76663,51.830635)">
+      <rect
+         ry="0"
+         y="767.71906"
+         x="321.23337"
+         height="580"
+         width="10"
+         id="rect2981"
+         style="fill:#ffffff;fill-opacity:1;stroke:none" />
+      <rect
+         inkscape:export-ydpi="360"
+         inkscape:export-xdpi="360"
+         inkscape:export-filename="C:\Users\Alexey\Files\Programming\Evernote client\gfx\render.png"
+         ry="6.4022727"
+         y="767.71906"
+         x="321.23337"
+         height="400"
+         width="10"
+         id="rect3648"
+         style="fill:#666666;fill-opacity:1;stroke:none"
+         rx="5" />
+    </g>
+    <rect
+       style="fill:url(#linearGradient4194);fill-opacity:1;stroke:none"
+       id="rect2883"
+       width="480"
+       height="64"
+       x="0"
+       y="464.36218" />
+    <rect
+       style="fill:url(#linearGradient4259);fill-opacity:1;stroke:none"
+       id="rect2883-9"
+       width="480"
+       height="64"
+       x="0"
+       y="528.36218" />
+    <g
+       id="g4653">
+      <image
+         xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-redo.png"
+         width="64"
+         height="64"
+         id="image4346"
+         x="63.999748"
+         y="464.36218" />
+      <image
+         xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-undo.png"
+         width="64"
+         height="64"
+         id="image4360"
+         x="-0.00025027155"
+         y="464.36218" />
+    </g>
+    <g
+       id="g4662"
+       transform="translate(16.000122,0)">
+      <image
+         xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-copy.png"
+         width="64"
+         height="64"
+         id="image4402"
+         x="127.99975"
+         y="464.36218" />
+      <image
+         xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-paste.png"
+         width="64"
+         height="64"
+         id="image4416"
+         x="191.99976"
+         y="464.36218" />
+    </g>
+    <g
+       id="g4657"
+       transform="translate(32.000244,0)">
+      <image
+         xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-strong.png"
+         width="64"
+         height="64"
+         id="image4430"
+         x="255.99976"
+         y="464.36218" />
+      <image
+         xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-em.png"
+         width="64"
+         height="64"
+         id="image4444"
+         x="319.99976"
+         y="464.36218" />
+      <image
+         xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-u.png"
+         width="64"
+         height="64"
+         id="image4458"
+         x="383.99976"
+         y="464.36218" />
+    </g>
+    <g
+       id="g4678">
+      <image
+         xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-li-ol.png"
+         width="64"
+         height="64"
+         id="image4472"
+         x="-0.00025027155"
+         y="528.36218" />
+      <image
+         xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-li-ul.png"
+         width="64"
+         height="64"
+         id="image4486"
+         x="63.999748"
+         y="528.36218" />
+    </g>
+    <g
+       id="g4674"
+       transform="translate(16.000122,0)">
+      <image
+         xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-indent-dec.png"
+         width="64"
+         height="64"
+         id="image4500"
+         x="127.99975"
+         y="528.36218" />
+      <image
+         xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-indent-inc.png"
+         width="64"
+         height="64"
+         id="image4514"
+         x="191.99976"
+         y="528.36218" />
+    </g>
+    <image
+       y="528.36218"
+       x="288"
+       id="image4528"
+       height="64"
+       width="64"
+       xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/rt-check.png" />
+    <text
+       xml:space="preserve"
+       style="font-size:29px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#000000;fill-opacity:1;stroke:none;font-family:Tahoma;-inkscape-font-specification:Tahoma"
+       x="27.498077"
+       y="632.67743"
+       id="text4647"><tspan
+         sodipodi:role="line"
+         id="tspan4649"
+         x="27.498077"
+         y="632.67743">Note Title</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Page border"
+     style="display:inline"
+     sodipodi:insensitive="true">
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:none;display:inline"
+       d="m -66,-56 0,752 612,0 0,-752 -612,0 z M 0,0 480,0 480,640 0,640 0,0 z"
+       id="rect4040"
+       inkscape:export-filename="C:\Users\Alexey\Files\Programming\Evernote client\gfx\render.png"
+       inkscape:export-xdpi="360"
+       inkscape:export-ydpi="360" />
+    <rect
+       style="fill:#000000;fill-opacity:1;stroke:none;display:inline"
+       id="rect3057"
+       width="505.87399"
+       height="60.570992"
+       x="-12.937"
+       y="-8.5709915"
+       rx="0"
+       ry="0" />
+    <image
+       style="display:inline"
+       y="0"
+       x="-0.00025027155"
+       id="image3052"
+       height="52"
+       width="480.00046"
+       xlink:href="file:///C:/Users/Alexey/Files/Programming/Evernote%20client/gfx/icons/window%20title.png" />
+  </g>
+</svg>
