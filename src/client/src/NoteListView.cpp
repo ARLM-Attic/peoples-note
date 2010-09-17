@@ -23,12 +23,13 @@ NoteListView::NoteListView
 	, HINSTANCE   instance
 	, int         cmdShow
 	)
-	: animator        (animator)
-	, acceleration    (-0.001)
-	, cmdShow         (cmdShow)
-	, instance        (instance)
-	, sipState        (SHFS_HIDESIPBUTTON)
-	, HTMLayoutWindow (L"main.htm")
+	: animator          (animator)
+	, acceleration      (-0.001)
+	, cmdShow           (cmdShow)
+	, instance          (instance)
+	, searchButtonState (SearchButtonSearch)
+	, sipState          (SHFS_HIDESIPBUTTON)
+	, HTMLayoutWindow   (L"main.htm")
 {
 	::ZeroMemory(&activateInfo, sizeof(activateInfo));
 	activateInfo.cbSize = sizeof(activateInfo);
@@ -64,17 +65,18 @@ void NoteListView::Create()
 
 void NoteListView::RegisterEventHandlers()
 {
-	ConnectBehavior("#menu-profile",  MENU_ITEM_CLICK, &NoteListView::OnMenuProfile);
-	ConnectBehavior("#menu-about",    MENU_ITEM_CLICK, &NoteListView::OnMenuAbout);
-	ConnectBehavior("#menu-exit",     MENU_ITEM_CLICK, &NoteListView::OnMenuExit);
-	ConnectBehavior("#menu-import",   MENU_ITEM_CLICK, &NoteListView::OnMenuImport);
-	ConnectBehavior("#menu-signin",   MENU_ITEM_CLICK, &NoteListView::OnMenuSignIn);
-	ConnectBehavior("#note-list",     BUTTON_CLICK,    &NoteListView::OnNote);
-	ConnectBehavior("#new-text",      BUTTON_CLICK,    &NoteListView::OnNewText);
-	ConnectBehavior("#page-down",     BUTTON_CLICK,    &NoteListView::OnPageDown);
-	ConnectBehavior("#page-up",       BUTTON_CLICK,    &NoteListView::OnPageUp);
-	ConnectBehavior("#search-button", BUTTON_CLICK,    &NoteListView::OnSearch);
-	ConnectBehavior("#sync-panel",    BUTTON_CLICK,    &NoteListView::OnSync);
+	ConnectBehavior("#menu-profile",  MENU_ITEM_CLICK,    &NoteListView::OnMenuProfile);
+	ConnectBehavior("#menu-about",    MENU_ITEM_CLICK,    &NoteListView::OnMenuAbout);
+	ConnectBehavior("#menu-exit",     MENU_ITEM_CLICK,    &NoteListView::OnMenuExit);
+	ConnectBehavior("#menu-import",   MENU_ITEM_CLICK,    &NoteListView::OnMenuImport);
+	ConnectBehavior("#menu-signin",   MENU_ITEM_CLICK,    &NoteListView::OnMenuSignIn);
+	ConnectBehavior("#note-list",     BUTTON_CLICK,       &NoteListView::OnNote);
+	ConnectBehavior("#new-text",      BUTTON_CLICK,       &NoteListView::OnNewText);
+	ConnectBehavior("#page-down",     BUTTON_CLICK,       &NoteListView::OnPageDown);
+	ConnectBehavior("#page-up",       BUTTON_CLICK,       &NoteListView::OnPageUp);
+	ConnectBehavior("#search-box",    EDIT_VALUE_CHANGED, &NoteListView::OnSearchChanged);
+	ConnectBehavior("#search-button", BUTTON_CLICK,       &NoteListView::OnSearch);
+	ConnectBehavior("#sync-panel",    BUTTON_CLICK,       &NoteListView::OnSync);
 
 	noteList     = FindFirstElement("#note-list");
 	notebookList = FindFirstElement("#notebook-list");
@@ -145,6 +147,11 @@ void NoteListView::ConnectAbout(slot_type OnAbout)
 	SignalAbout.connect(OnAbout);
 }
 
+void NoteListView::ConnectClearSearch(slot_type OnClearSearch)
+{
+	SignalClearSearch.connect(OnClearSearch);
+}
+
 void NoteListView::ConnectImport(slot_type OnImport)
 {
 	SignalImport.connect(OnImport);
@@ -183,6 +190,11 @@ void NoteListView::ConnectProfile(slot_type OnProfile)
 void NoteListView::ConnectSearch(slot_type OnSearch)
 {
 	SignalSearch.connect(OnSearch);
+}
+
+void NoteListView::ConnectSearchChanged(slot_type OnSearchChanged)
+{
+	SignalSearchChanged.connect(OnSearchChanged);
 }
 
 void NoteListView::ConnectSignIn(slot_type OnSignIn)
@@ -273,6 +285,26 @@ void NoteListView::SetProgress(double fraction)
 	stream << (100.0 - 100.0 * fraction) << L"%";
 	element(FindFirstElement("#status-progress"))
 		.set_style_attribute("background-offset-right", stream.str().c_str());
+}
+
+void NoteListView::SetSearchButtonToClear()
+{
+	searchButtonState = SearchButtonClear;
+	element(FindFirstElement("#search-button"))
+		.set_style_attribute("background-image", L"url(clear.png");
+}
+
+void NoteListView::SetSearchButtonToSearch()
+{
+	searchButtonState = SearchButtonSearch;
+	element(FindFirstElement("#search-button"))
+		.set_style_attribute("background-image", L"url(search.png");
+}
+
+void NoteListView::SetSearchText(const wstring & text)
+{
+	element(FindFirstElement("#search-box"))
+		.set_text(text.c_str());
 }
 
 void NoteListView::SetSigninText(const wstring & text)
@@ -399,6 +431,15 @@ bool NoteListView::IsChild(element child, element parent)
 	return false;
 }
 
+void NoteListView::OnSearch()
+{
+	switch (searchButtonState)
+	{
+	case SearchButtonSearch: SignalSearch();      break;
+	case SearchButtonClear:  SignalClearSearch(); break;
+	}
+}
+
 ATOM NoteListView::RegisterClass(wstring wndClass)
 {
 	WNDCLASS wc = { 0 };
@@ -513,9 +554,13 @@ void NoteListView::OnDestroy(Msg<WM_DESTROY> &msg)
 
 void NoteListView::OnMouseDown(Msg<WM_LBUTTONDOWN> & msg)
 {
-	element target(element::find_element(hwnd_, msg.Position()));
-	if (!IsChild(target, noteList))
+	clickTarget = element::find_element(hwnd_, msg.Position());
+	if (!IsChild(clickTarget, noteList))
+	{
+		if (clickTarget == noteList)
+			noteList.set_state(STATE_FOCUS);
 		return;
+	}
 
 	noteList.set_state(STATE_FOCUS);
 
@@ -623,7 +668,7 @@ BOOL NoteListView::OnKey(KEY_PARAMS * params)
 		return FALSE;
 	if (params->key_code == 0x0D && searchBox == params->target)
 	{
-		SignalSearch();
+		OnSearch();
 		return TRUE;
 	}
 	return FALSE;
@@ -668,13 +713,9 @@ void NoteListView::OnNewText(BEHAVIOR_EVENT_PARAMS * params)
 
 void NoteListView::OnNote(BEHAVIOR_EVENT_PARAMS * params)
 {
-	POINT point = { 0 };
-	::GetCursorPos(&point);
-	::ScreenToClient(hwnd_, &point);
-	element target(GetChild(noteList, noteList.find_element(hwnd_, point)));
-	if (target)
+	if (IsChild(clickTarget, noteList))
 	{
-		const wchar_t * value(target.get_attribute("value"));
+		const wchar_t * value(GetChild(noteList, clickTarget).get_attribute("value"));
 		if (value)
 		{
 			noteList.set_attribute("value", value);
@@ -695,7 +736,12 @@ void NoteListView::OnPageUp(BEHAVIOR_EVENT_PARAMS * params)
 
 void NoteListView::OnSearch(BEHAVIOR_EVENT_PARAMS * params)
 {
-	SignalSearch();
+	OnSearch();
+}
+
+void NoteListView::OnSearchChanged(BEHAVIOR_EVENT_PARAMS * params)
+{
+	SignalSearchChanged();
 }
 
 void NoteListView::OnSync(BEHAVIOR_EVENT_PARAMS * params)
