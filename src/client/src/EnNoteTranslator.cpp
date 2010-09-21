@@ -22,6 +22,7 @@ EnNoteTranslator::EnNoteTranslator()
 	htmlTransforms[L"img"]   = &EnNoteTranslator::ReplaceImg;
 	htmlTransforms[L"input"] = &EnNoteTranslator::ReplaceCheckbox;
 
+	xmlTransforms[L"en-crypt"] = &EnNoteTranslator::ReplaceCrypt;
 	xmlTransforms[L"en-media"] = &EnNoteTranslator::ReplaceMedia;
 	xmlTransforms[L"en-note"]  = &EnNoteTranslator::ReplaceNote;
 	xmlTransforms[L"en-todo"]  = &EnNoteTranslator::ReplaceTodo;
@@ -42,6 +43,58 @@ void EnNoteTranslator::ConvertToHtml
 	print(back_inserter(html), *doc, print_no_indenting | print_no_char_expansion);
 	// apostropies are escaped in XML, but not in HTML
 	Tools::ReplaceAll(html, L"&apos;", L"'");
+}
+
+void EnNoteTranslator::ConvertToText
+	( wstring   xml
+	, wstring & text
+	)
+{
+	typedef xml_document<wchar_t> XmlDocument;
+	auto_ptr<XmlDocument> doc(new XmlDocument());
+	doc->parse<parse_non_destructive>(&xml[0]);
+
+	text.clear();
+
+	// depth-first iteration
+	xml_node<wchar_t> * node(doc.get());
+	while (node)
+	{
+		xml_node<wchar_t> * next(0);
+
+		switch (node->type())
+		{
+		case node_data:
+			{
+				// output text
+				text.append(node->value(), node->value_size());
+				text.append(L" ");
+				next = node->parent()->next_sibling();
+			} break;
+		case node_element:
+			{
+				// skip en-crypt elements
+				wstring name(node->name(), node->name_size());
+				if (name == L"en-crypt")
+					next = node->next_sibling();
+				else
+					next = node->first_node();
+			} break;
+		default:
+			{
+				next = node->first_node();
+			}
+		}
+
+		// get next node
+		while (!next && node->parent())
+		{
+			next = node->next_sibling();
+			if (!next)
+				node = node->parent();
+		}
+		node = next;
+	}
 }
 
 void EnNoteTranslator::ConvertToXml
@@ -137,6 +190,31 @@ void EnNoteTranslator::ReplaceCheckbox
 	child->append_attribute(store->allocate_attribute(L"checked", state ? L"true" : L"false"));
 }
 
+void EnNoteTranslator::ReplaceCrypt
+	( memory_pool<wchar_t> * store
+	, xml_node<wchar_t>    * parent
+	, xml_node<wchar_t>    * child
+	)
+{
+	child->name(L"img");
+	child->append_attribute(store->allocate_attribute(L"type", L"en-crypt"));
+	child->append_attribute(store->allocate_attribute(L"src", L"encrypt.png"));
+
+	wstring value(child->value(), child->value_size());
+	Tools::ReplaceAll(value, L"\r", L"");
+	Tools::ReplaceAll(value, L"\n", L"");
+	child->append_attribute
+		( store->allocate_attribute
+			( L"content"
+			, store->allocate_string(value.c_str(), value.size())
+			, 0
+			, value.size()
+			)
+		);
+	child->remove_all_nodes();
+	child->value(L"", 0);
+}
+
 void EnNoteTranslator::ReplaceDiv
 	( memory_pool<wchar_t> * store
 	, xml_node<wchar_t>    * parent
@@ -150,9 +228,45 @@ void EnNoteTranslator::ReplaceDiv
 
 	if (type == L"en-note")
 	{
-		child->remove_all_attributes();
+		child->remove_attribute(typeAttribute);
 		child->name(L"en-note");
 	}
+}
+
+void EnNoteTranslator::ReplaceEncryptImg
+	( memory_pool<wchar_t> * store
+	, xml_node<wchar_t>    * parent
+	, xml_node<wchar_t>    * child
+	)
+{
+	// remove image attributes
+	vector<const wchar_t *> attributesToRemove;
+	attributesToRemove.push_back(L"src");
+	attributesToRemove.push_back(L"physical-width");
+	attributesToRemove.push_back(L"physical-height");
+	foreach (const wchar_t * name, attributesToRemove)
+	{
+		xml_attribute<wchar_t> * a(child->first_attribute(name));
+		if (a)
+			child->remove_attribute(a);
+	}
+
+	// convert the "content" attribute to value
+	xml_attribute<wchar_t> * contentAttribute(child->first_attribute(L"content"));
+	if (contentAttribute)
+	{
+		child->value
+			( store->allocate_string
+				( contentAttribute->value()
+				, contentAttribute->value_size()
+				)
+			, contentAttribute->value_size()
+			);
+		child->remove_attribute(contentAttribute);
+	}
+
+	// rename the node
+	child->name(L"en-crypt");
 }
 
 void EnNoteTranslator::ReplaceImg
@@ -161,10 +275,22 @@ void EnNoteTranslator::ReplaceImg
 	, xml_node<wchar_t>    * child
 	)
 {
+	// check for special images
+	xml_attribute<wchar_t> * typeAttribute(child->first_attribute(L"type"));
+	if (typeAttribute)
+	{
+		wstring type(typeAttribute->value(), typeAttribute->value_size());
+		if (type == L"en-crypt")
+		{
+			ReplaceEncryptImg(store, parent, child);
+			child->remove_attribute(typeAttribute);
+			return;
+		}
+	}
+
 	xml_attribute<wchar_t> * srcAttribute(child->first_attribute(L"src"));
 	if (!srcAttribute)
 		return;
-
 	wstring src(srcAttribute->value(), srcAttribute->value_size());
 
 	int colonPosition(src.find(L':'));
