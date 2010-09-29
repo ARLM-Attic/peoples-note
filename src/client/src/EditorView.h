@@ -24,7 +24,7 @@ private:
 
 public:
 
-	EditorView(HINSTANCE instance);
+	EditorView(HINSTANCE instance, bool highRes);
 
 	void Create(HWND parent);
 
@@ -67,8 +67,10 @@ private:
 
 private:
 
-	void OnCheck (BEHAVIOR_EVENT_PARAMS * params);
-	void OnInput (BEHAVIOR_EVENT_PARAMS * params);
+	void OnCheck     (BEHAVIOR_EVENT_PARAMS * params);
+	void OnHidePanel (BEHAVIOR_EVENT_PARAMS * params);
+	void OnInput     (BEHAVIOR_EVENT_PARAMS * params);
+	void OnShowPanel (BEHAVIOR_EVENT_PARAMS * params);
 
 // utility functions
 

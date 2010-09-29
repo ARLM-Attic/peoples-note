@@ -75,8 +75,9 @@ private:
 public:
 
 	NoteListView
-		( IAnimator & animator
-		, HINSTANCE   instance
+		( HINSTANCE   instance
+		, bool        highRes
+		, IAnimator & animator
 		, int         cmdShow
 		);
 
@@ -132,6 +133,8 @@ public:
 	virtual Guid GetSelectedNoteGuid();
 	
 	virtual std::wstring GetSearchString();
+
+	virtual void GetThumbSize(SIZE & size);
 
 	virtual void HidePageDown();
 

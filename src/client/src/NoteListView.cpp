@@ -19,8 +19,9 @@ using namespace Tools;
 //----------
 
 NoteListView::NoteListView
-	( IAnimator & animator
-	, HINSTANCE   instance
+	( HINSTANCE   instance
+	, bool        highRes
+	, IAnimator & animator
 	, int         cmdShow
 	)
 	: animator          (animator)
@@ -29,7 +30,7 @@ NoteListView::NoteListView
 	, instance          (instance)
 	, searchButtonState (SearchButtonSearch)
 	, sipState          (SHFS_HIDESIPBUTTON)
-	, HTMLayoutWindow   (L"main.htm")
+	, HTMLayoutWindow   (L"main.htm", highRes)
 {
 	::ZeroMemory(&activateInfo, sizeof(activateInfo));
 	activateInfo.cbSize = sizeof(activateInfo);
@@ -226,6 +227,13 @@ Guid NoteListView::GetSelectedNoteGuid()
 wstring NoteListView::GetSearchString()
 {
 	return searchBox.text().c_str();
+}
+
+void NoteListView::GetThumbSize(SIZE & size)
+{
+	element e(element::root_element(hwnd_));
+	size.cx = e.get_attribute_int("thumb-width");
+	size.cy = e.get_attribute_int("thumb-height");
 }
 
 void NoteListView::HidePageDown()

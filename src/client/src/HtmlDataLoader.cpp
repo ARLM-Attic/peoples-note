@@ -3,6 +3,7 @@
 
 #include "EnNoteTranslator.h"
 #include "HtmlResource.h"
+#include "INoteListView.h"
 #include "INoteView.h"
 #include "Tools.h"
 #include "Transaction.h"
@@ -12,11 +13,15 @@ using namespace std;
 using namespace Tools;
 
 HtmlDataLoader::HtmlDataLoader
-	( EnNoteTranslator & enNoteTranslator
+	( bool               highRes
+	, EnNoteTranslator & enNoteTranslator
+	, INoteListView    & noteListView
 	, INoteView        & noteView
 	, IUserModel       & userModel
 	)
-	: enNoteTranslator (enNoteTranslator)
+	: highRes          (highRes)
+	, enNoteTranslator (enNoteTranslator)
+	, noteListView     (noteListView)
 	, noteView         (noteView)
 	, userModel        (userModel)
 {
@@ -87,7 +92,7 @@ bool HtmlDataLoader::IsPrefix
 
 void HtmlDataLoader::LoadHtmlUri(const wchar_t * uri)
 {
-	HtmlResource resource(LoadHtmlResource(uri));
+	HtmlResource resource(LoadHtmlResource(uri, highRes));
 	blob.assign(resource.data, resource.data + resource.size);
 }
 
@@ -119,7 +124,8 @@ void HtmlDataLoader::LoadThumbnailUri(const wchar_t * uri)
 	Thumbnail thumbnail;
 	userModel.GetNoteThumbnail(guid, thumbnail);
 
-	const SIZE size = { 164, 100 };
+	SIZE size;
+	noteListView.GetThumbSize(size);
 	if (thumbnail.Width != size.cx || thumbnail.Height != size.cy)
 	{
 		wstring body;

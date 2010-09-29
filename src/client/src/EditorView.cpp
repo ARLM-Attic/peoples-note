@@ -14,10 +14,10 @@ using namespace Tools;
 // interface
 //----------
 
-EditorView::EditorView(HINSTANCE instance)
+EditorView::EditorView(HINSTANCE instance, bool highRes)
 	: instance        (instance)
 	, parent          (NULL)
-	, HTMLayoutWindow (L"note-edit.htm")
+	, HTMLayoutWindow (L"note-edit.htm", highRes)
 {
 	::ZeroMemory(&activateInfo, sizeof(activateInfo));
 	activateInfo.cbSize = sizeof(activateInfo);
@@ -33,6 +33,8 @@ void EditorView::Create(HWND parent)
 void EditorView::RegisterEventHandlers()
 {
 	ConnectBehavior("#check", BUTTON_CLICK, &EditorView::OnCheck);
+	ConnectBehavior("#hide",  BUTTON_CLICK, &EditorView::OnHidePanel);
+	ConnectBehavior("#show",  BUTTON_CLICK, &EditorView::OnShowPanel);
 }
 
 //---------------------------
@@ -185,6 +187,14 @@ void EditorView::OnCheck(BEHAVIOR_EVENT_PARAMS * params)
 	body.update();
 }
 
+void EditorView::OnHidePanel(BEHAVIOR_EVENT_PARAMS * params)
+{
+	element(FindFirstElement("#panel"))
+		.set_style_attribute("display", L"none");
+	element(FindFirstElement("#show"))
+		.set_style_attribute("display", L"block");
+}
+
 void EditorView::OnInput(BEHAVIOR_EVENT_PARAMS * params)
 {
 	element e(params->heTarget);
@@ -192,6 +202,14 @@ void EditorView::OnInput(BEHAVIOR_EVENT_PARAMS * params)
 		e.set_attribute("checked", L"");
 	else
 		e.remove_attribute("checked");
+}
+
+void EditorView::OnShowPanel(BEHAVIOR_EVENT_PARAMS * params)
+{
+	element(FindFirstElement("#show"))
+		.set_style_attribute("display", L"none");
+	element(FindFirstElement("#panel"))
+		.set_style_attribute("display", L"block");
 }
 
 //------------------
