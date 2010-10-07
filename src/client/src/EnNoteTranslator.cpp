@@ -107,8 +107,11 @@ void EnNoteTranslator::ConvertToXml
 	doc->parse<parse_non_destructive>(&html[0]);
 
 	ProcessNode(doc.get(), doc.get(), htmlTransforms);
+	SetRootToEnNote(doc.get());
 
-	xml = L"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">\n";
+	xml =
+		L"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+		L"<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">\n";
 	print(back_inserter(xml), *doc, print_no_indenting | print_no_char_expansion);
 }
 
@@ -388,4 +391,21 @@ void EnNoteTranslator::ReplaceTodo
 
 	parent->insert_node(child, node);
 	parent->remove_node(child);
+}
+
+void EnNoteTranslator::SetRootToEnNote(xml_document<wchar_t> * doc)
+{
+	xml_node<wchar_t> * root(doc->first_node());
+	if (!root || wstring(root->name(), root->name_size()) != L"en-note")
+	{
+		root = doc->allocate_node(node_element, L"en-note");
+		xml_node<wchar_t> * node(doc->first_node());
+		while (node)
+		{
+			doc->remove_node(node);
+			root->append_node(node);
+			node = doc->first_node();
+		}
+		doc->append_node(root);
+	}
 }

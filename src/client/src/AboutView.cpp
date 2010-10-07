@@ -3,6 +3,7 @@
 
 #include "crackers.h"
 #include "IHtmlDataLoader.h"
+#include "Rect.h"
 #include "resourceppc.h"
 #include "Tools.h"
 
@@ -48,17 +49,22 @@ void AboutView::Show()
 	wstring wndTitle = LoadStringResource(IDS_APP_TITLE);
 	wstring wndClass = LoadStringResource(IDC_ABOUT_VIEW);
 
-	DWORD windowStyle(WS_VISIBLE);
+	DWORD windowStyle   (WS_POPUP|WS_VISIBLE);
+	DWORD windowExStyle (WS_EX_CAPTIONOKBTN);
 
-	hwnd_ = ::CreateWindow
-		( wndClass.c_str() // lpClassName
+	Rect rect;
+	::SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, FALSE);
+
+	hwnd_ = ::CreateWindowEx
+		( windowExStyle    // dwExStyle
+		, wndClass.c_str() // lpClassName
 		, wndTitle.c_str() // lpWindowName
 		, windowStyle      // dwStyle
-		, CW_USEDEFAULT    // x
-		, CW_USEDEFAULT    // y
-		, CW_USEDEFAULT    // nWidth
-		, CW_USEDEFAULT    // nHeight
-		, NULL             // hWndParent
+		, rect.GetX()      // x
+		, rect.GetY()      // y
+		, rect.GetWidth()  // nWidth
+		, rect.GetHeight() // nHeight
+		, parent           // hWndParent
 		, NULL             // hMenu
 		, instance         // hInstance
 		, this             // lpParam
@@ -70,6 +76,15 @@ void AboutView::Show()
 //------------------------
 // window message handlers
 //------------------------
+
+void AboutView::OnCommand(Msg<WM_COMMAND> & msg)
+{
+	if (msg.CtrlId() == IDOK)
+	{
+		SignalClose();
+		msg.handled_ = true;
+	}
+}
 
 void AboutView::OnKeyUp(Msg<WM_KEYUP> & msg)
 {
@@ -84,10 +99,12 @@ void AboutView::ProcessMessage(WndMsg &msg)
 {
 	static Handler mmp[] =
 	{
+		&AboutView::OnCommand,
 		&AboutView::OnKeyUp,
 	};
 	try
 	{
+		DEBUGMSG(true, (L"%s\n", Tools::GetMessageName(msg.id_).c_str()));
 		if (!Handler::Call(mmp, this, msg))
 			__super::ProcessMessage(msg);
 	}

@@ -131,7 +131,7 @@
 				Name="VCCLCompilerTool"
 				ExecutionBucket="7"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)&quot;;..\HTMLayout\include;&quot;..\Evernote API\include&quot;;C:\Users\Alexey\Files\Programming\boost_1_41_0"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)&quot;;..\HTMLayout\include;&quot;..\Evernote API\include&quot;"
 				PreprocessorDefinitions="_DEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);WINCE;DEBUG;_WINDOWS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE;POCKETPC2003_UI_MODEL;SQLITE_OMIT_UTF16;SQLITE_ENABLE_FTS3;SQLITE_ENABLE_FTS3_PARENTHESIS"
 				MinimalRebuild="true"
 				RuntimeLibrary="1"
@@ -314,7 +314,7 @@
 				ExecutionBucket="7"
 				Optimization="2"
 				FavorSizeOrSpeed="2"
-				AdditionalIncludeDirectories="&quot;$(ProjectDir)&quot;;..\HTMLayout\include;&quot;..\Evernote API\include&quot;;C:\Users\Alexey\Files\Programming\boost_1_41_0"
+				AdditionalIncludeDirectories="&quot;$(ProjectDir)&quot;;..\HTMLayout\include;&quot;..\Evernote API\include&quot;"
 				PreprocessorDefinitions="SQLITE_OMIT_UTF16;NDEBUG;_WIN32_WCE=$(CEVER);UNDER_CE;$(PLATFORMDEFINES);WINCE;_WINDOWS;$(ARCHFAM);$(_ARCHFAM_);_UNICODE;UNICODE;POCKETPC2003_UI_MODEL;SQLITE_ENABLE_FTS3;SQLITE_ENABLE_FTS3_PARENTHESIS"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
@@ -379,6 +379,31 @@
 		</Configuration>
 	</Configurations>
 	<References>
+		<AssemblyReference
+			RelativePath="System.dll"
+			AssemblyName="System, Version=2.0.0.0, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL"
+			MinFrameworkVersion="131072"
+		/>
+		<AssemblyReference
+			RelativePath="System.Data.dll"
+			AssemblyName="System.Data, Version=2.0.0.0, PublicKeyToken=b77a5c561934e089, processorArchitecture=x86"
+			MinFrameworkVersion="131072"
+		/>
+		<AssemblyReference
+			RelativePath="System.Drawing.dll"
+			AssemblyName="System.Drawing, Version=2.0.0.0, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL"
+			MinFrameworkVersion="131072"
+		/>
+		<AssemblyReference
+			RelativePath="System.Windows.Forms.dll"
+			AssemblyName="System.Windows.Forms, Version=2.0.0.0, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL"
+			MinFrameworkVersion="131072"
+		/>
+		<AssemblyReference
+			RelativePath="System.XML.dll"
+			AssemblyName="System.Xml, Version=2.0.0.0, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL"
+			MinFrameworkVersion="131072"
+		/>
 	</References>
 	<Files>
 		<Filter
@@ -444,6 +469,10 @@
 			</File>
 			<File
 				RelativePath=".\src\EnService.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\EnServiceTools.cpp"
 				>
 			</File>
 			<File
@@ -544,6 +573,10 @@
 			</File>
 			<File
 				RelativePath=".\src\ProfileView.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\Rect.cpp"
 				>
 			</File>
 			<File
@@ -774,6 +807,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\EnServiceTools.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\foreach.h"
 				>
 			</File>
@@ -967,6 +1004,10 @@
 			</File>
 			<File
 				RelativePath=".\src\ProfileView.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\Rect.h"
 				>
 			</File>
 			<File
@@ -1379,7 +1420,6 @@
 			>
 			<File
 				RelativePath=".\html-lr\about.htm"
-				DeploymentContent="true"
 				>
 			</File>
 			<File
@@ -1388,7 +1428,6 @@
 			</File>
 			<File
 				RelativePath=".\html-lr\main.htm"
-				DeploymentContent="true"
 				>
 			</File>
 			<File
@@ -1409,7 +1448,6 @@
 			</File>
 			<File
 				RelativePath=".\html-lr\note-edit.htm"
-				DeploymentContent="true"
 				>
 			</File>
 			<File
@@ -1418,7 +1456,6 @@
 			</File>
 			<File
 				RelativePath=".\html-lr\note-view.htm"
-				DeploymentContent="true"
 				>
 			</File>
 			<File
@@ -1427,7 +1464,6 @@
 			</File>
 			<File
 				RelativePath=".\html-lr\profile.htm"
-				DeploymentContent="true"
 				>
 			</File>
 			<File
@@ -1436,7 +1472,6 @@
 			</File>
 			<File
 				RelativePath=".\html-lr\signin-view.htm"
-				DeploymentContent="true"
 				>
 			</File>
 		</Filter>
