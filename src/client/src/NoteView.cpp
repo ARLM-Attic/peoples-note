@@ -191,9 +191,8 @@ ATOM NoteView::RegisterClass(const wstring & wndClass)
 	return ::RegisterClass(&wc);
 }
 
-void NoteView::ToggleFullScreen()
+void NoteView::UpdateFullScreen()
 {
-	isFullScreen = !isFullScreen;
 	::SHFullScreen
 		( hwnd_
 		, isFullScreen
@@ -234,17 +233,34 @@ void NoteView::ToggleFullScreen()
 // window message handlers
 //------------------------
 
-void NoteView::OnClose(Msg<WM_CLOSE> &msg)
+void NoteView::OnActivate(Msg<WM_ACTIVATE> & msg)
+{
+	if (msg.GetActiveState() != WA_INACTIVE)
+		UpdateFullScreen();
+}
+
+void NoteView::OnClose(Msg<WM_CLOSE> & msg)
 {
 	Hide();
 	msg.handled_ = true;
+}
+
+void NoteView::OnCommand(Msg<WM_COMMAND> & msg)
+{
+	if (msg.CtrlId() == IDOK)
+	{
+		CloseWindow(hwnd_);
+		msg.handled_ = true;
+	}
 }
 
 void NoteView::ProcessMessage(WndMsg &msg)
 {
 	static Handler mmp[] =
 	{
+		&NoteView::OnActivate,
 		&NoteView::OnClose,
+		&NoteView::OnCommand,
 	};
 	try
 	{
@@ -269,7 +285,8 @@ void NoteView::OnEdit(BEHAVIOR_EVENT_PARAMS * params)
 
 void NoteView::OnFullScreen(BEHAVIOR_EVENT_PARAMS * params)
 {
-	ToggleFullScreen();
+	isFullScreen = !isFullScreen;
+	UpdateFullScreen();
 }
 
 void NoteView::OnHome(BEHAVIOR_EVENT_PARAMS * params)

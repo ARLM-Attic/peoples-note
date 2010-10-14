@@ -9,8 +9,8 @@ class NoteView : public HTMLayoutWindow, public INoteView
 {
 private:
 
-	HINSTANCE instance;
 	HWND      parent;
+	HINSTANCE instance;
 
 	Note note;
 
@@ -67,13 +67,15 @@ private:
 
 	ATOM RegisterClass(const std::wstring & wndClass);
 
-	void ToggleFullScreen();
+	void UpdateFullScreen();
 
 // window message handlers
 
 private:
 
-	void OnClose(Msg<WM_CLOSE> & msg);
+	void OnActivate (Msg<WM_ACTIVATE> & msg);
+	void OnClose    (Msg<WM_CLOSE>    & msg);
+	void OnCommand  (Msg<WM_COMMAND>  & msg);
 
 	virtual void ProcessMessage(WndMsg &msg);
 

@@ -61,6 +61,7 @@ private:
 	signal SignalImport;
 	signal SignalNewInkNote;
 	signal SignalNewNote;
+	signal SignalNewPhotoNote;
 	signal SignalNotebookSelected;
 	signal SignalOpenNote;
 	signal SignalPageDown;
@@ -106,6 +107,8 @@ public:
 	virtual void ConnectNewInkNote(slot_type OnNewInkNote);
 
 	virtual void ConnectNewNote(slot_type OnNewNote);
+
+	virtual void ConnectNewPhotoNote(slot_type OnNewPhotoNote);
 
 	virtual void ConnectNotebookSelected(slot_type OnNotebookSelected);
 
@@ -222,6 +225,7 @@ private:
 	void OnMenuProfile   (BEHAVIOR_EVENT_PARAMS * params);
 	void OnMenuSignIn    (BEHAVIOR_EVENT_PARAMS * params);
 	void OnNewInk        (BEHAVIOR_EVENT_PARAMS * params);
+	void OnNewPhoto      (BEHAVIOR_EVENT_PARAMS * params);
 	void OnNewText       (BEHAVIOR_EVENT_PARAMS * params);
 	void OnNote          (BEHAVIOR_EVENT_PARAMS * params);
 	void OnPageDown      (BEHAVIOR_EVENT_PARAMS * params);
