@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "PhotoEditorPresenter.h"
 
+#include "IFile.h"
 #include "INoteListModel.h"
 #include "INoteListView.h"
 #include "IPhotoEditorView.h"
@@ -15,12 +16,14 @@ using namespace std;
 using namespace Tools;
 
 PhotoEditorPresenter::PhotoEditorPresenter
-	( INoteListModel   & noteListModel
+	( IFile            & file
+	, INoteListModel   & noteListModel
 	, INoteListView    & noteListView
 	, IPhotoEditorView & photoEditorView
 	, IUserModel       & userModel
 	)
-	: noteListModel   (noteListModel)
+	: file            (file)
+	, noteListModel   (noteListModel)
 	, noteListView    (noteListView)
 	, photoEditorView (photoEditorView)
 	, userModel       (userModel)
@@ -45,9 +48,12 @@ void PhotoEditorPresenter::OnCapture()
 	note.isDirty      = true;
 	note.usn          = 0;
 
+	if (note.name.empty())
+		note.name = L"Photo";
+
 	// create resource with hash
 	Resource image;
-	if (!ReadFile(photoEditorView.GetImagePath(), image.Data))
+	if (!file.Read(photoEditorView.GetImagePath(), image.Data))
 	{
 		photoEditorView.Hide();
 		return;

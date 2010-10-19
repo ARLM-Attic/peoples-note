@@ -57,6 +57,18 @@ private:
 		, AttributeMap                   & map
 		);
 
+	static bool AttributeNameSortPredicate
+		( const wchar_t * name1
+		, const wchar_t * name2
+		);
+
+	// requires a lowercase-alphabetically sorted whitelist
+	static void FilterAttributes
+		( rapidxml::xml_node<wchar_t> *  node
+		, const wchar_t               ** whitelistBegin
+		, const wchar_t               ** whitelistEnd
+		);
+
 	static void GetXmlAttributes
 		( rapidxml::xml_node<wchar_t> * node
 		, AttributeMap                & map
