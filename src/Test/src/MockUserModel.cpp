@@ -10,6 +10,9 @@ MockUserModel::MockUserModel()
 	: isInTransaction  (false)
 	, loadCount        (0)
 	, loadMethod       (LoadMethodNone)
+	, location         (DbLocationNone)
+	, path             (L"card-path")
+	, size             (42)
 {
 	defaultNotebook.name  = L"default-notebook";
 	lastUsedNotebook.name = L"last-used-notebook";
@@ -113,7 +116,7 @@ int MockUserModel::GetDirtyNoteCount(const Notebook & notebook)
 	return count;
 }
 
-wstring MockUserModel::GetFolder() const
+wstring MockUserModel::GetFolder()
 {
 	return folder;
 }
@@ -126,6 +129,11 @@ __int64 MockUserModel::GetLastSyncEnTime()
 void MockUserModel::GetLastUsedNotebook(Notebook & notebook)
 {
 	notebook = lastUsedNotebook;
+}
+
+DbLocation MockUserModel::GetLocation()
+{
+	return location;
 }
 
 Note MockUserModel::GetNote(Guid guid)
@@ -232,6 +240,16 @@ void MockUserModel::GetNoteThumbnail
 		thumbnail = noteThumbnails[guid];
 }
 
+wstring MockUserModel::GetPath()
+{
+	return path;
+}
+
+__int64 MockUserModel::GetSize()
+{
+	return size;
+}
+
 void MockUserModel::GetResource
 	( const string & hash
 	, Blob         & blob
@@ -310,6 +328,18 @@ void MockUserModel::MakeNotebookDefault(const Notebook & notebook)
 void MockUserModel::MakeNotebookLastUsed(const Notebook & notebook)
 {
 	lastUsedNotebook = notebook;
+}
+
+void MockUserModel::MoveToCard()
+{
+	location = DbLocationCard;
+	path     = L"card-path";
+}
+
+void MockUserModel::MoveToDevice()
+{
+	location = DbLocationDevice;
+	path     = L"device-path";
 }
 
 void MockUserModel::SetCredentials

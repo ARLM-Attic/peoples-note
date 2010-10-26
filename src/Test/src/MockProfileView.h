@@ -7,7 +7,14 @@ public:
 
 	bool isShown;
 
+	std::wstring dbPath;
+	std::wstring dbSize;
+	std::wstring moveButtonText;
+	std::wstring moveErrorMessage;
+	std::wstring username;
+
 	signal SignalClose;
+	signal SignalDbMove;
 
 public:
 
@@ -17,7 +24,21 @@ public:
 
 	virtual void ConnectClose(slot_type OnClose);
 
+	virtual void ConnectDbMove(slot_type OnDbMove);
+
 	virtual void Hide();
+
+	virtual bool IsShown();
+
+	virtual void SetDbPath(const std::wstring & path);
+
+	virtual void SetDbSize(const std::wstring & size);
+
+	virtual void SetMoveButtonText(const std::wstring & text);
+
+	virtual void SetMoveErrorMessage(const std::wstring & message);
+
+	virtual void SetUsername(const std::wstring & username);
 
 	virtual void Show();
 };
