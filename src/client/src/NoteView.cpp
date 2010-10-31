@@ -20,7 +20,7 @@ using namespace Tools;
 NoteView::NoteView(HINSTANCE instance, bool highRes)
 	: instance        (instance)
 	, isDirty         (false)
-	, isFullScreen    (false)
+	, isMaximized     (false)
 	, parent          (NULL)
 	, HTMLayoutWindow (L"note-view.htm", highRes)
 {
@@ -63,7 +63,7 @@ void NoteView::Create(HWND parent)
 void NoteView::RegisterEventHandlers()
 {
 	ConnectBehavior("#edit",        BUTTON_CLICK, &NoteView::OnEdit);
-	ConnectBehavior("#full-screen", BUTTON_CLICK, &NoteView::OnFullScreen);
+	ConnectBehavior("#full-screen", BUTTON_CLICK, &NoteView::OnToggle);
 	ConnectBehavior("#home",        BUTTON_CLICK, &NoteView::OnHome);
 }
 
@@ -79,6 +79,11 @@ void NoteView::ConnectClose(slot_type OnClose)
 void NoteView::ConnectEdit(slot_type OnEdit)
 {
 	SignalEdit.connect(OnEdit);
+}
+
+void NoteView::ConnectToggleMaximize(slot_type OnToggleMaximize)
+{
+	SignalToggleMaximize.connect(OnToggleMaximize);
 }
 
 static void CALLBACK _writer_a(LPCBYTE utf8, UINT utf8_length, LPVOID param)
@@ -121,6 +126,17 @@ bool NoteView::IsDirty()
 	return isDirty;
 }
 
+bool NoteView::IsMaximized()
+{
+	return isMaximized;
+}
+
+void NoteView::MaximizeWindow()
+{
+	isMaximized = true;
+	UpdateWindowState();
+}
+
 void NoteView::Render(Thumbnail & thumbnail)
 {
 	HTMLayoutUpdateElementEx
@@ -128,6 +144,12 @@ void NoteView::Render(Thumbnail & thumbnail)
 		, RESET_STYLE_DEEP | MEASURE_DEEP | REDRAW_NOW
 		);
 	WindowRenderer::RenderThumbnail(hwnd_, thumbnail);
+}
+
+void NoteView::RestoreWindow()
+{
+	isMaximized = false;
+	UpdateWindowState();
 }
 
 void NoteView::SetNote
@@ -191,16 +213,16 @@ ATOM NoteView::RegisterClass(const wstring & wndClass)
 	return ::RegisterClass(&wc);
 }
 
-void NoteView::UpdateFullScreen()
+void NoteView::UpdateWindowState()
 {
 	::SHFullScreen
 		( hwnd_
-		, isFullScreen
+		, isMaximized
 		? SHFS_HIDESIPBUTTON | SHFS_HIDETASKBAR
 		: SHFS_HIDESIPBUTTON | SHFS_SHOWTASKBAR
 		);
 	Rect rect;
-	if (isFullScreen)
+	if (isMaximized)
 	{
 		rect.left   = 0;
 		rect.top    = 0;
@@ -222,7 +244,7 @@ void NoteView::UpdateFullScreen()
 	element img(FindFirstElement("#full-screen"));
 	img.set_style_attribute
 		( "background-image"
-		, isFullScreen
+		, isMaximized
 		? L"url(view-restore.png)"
 		: L"url(view-fullscreen.png)"
 		);
@@ -236,7 +258,7 @@ void NoteView::UpdateFullScreen()
 void NoteView::OnActivate(Msg<WM_ACTIVATE> & msg)
 {
 	if (msg.GetActiveState() != WA_INACTIVE)
-		UpdateFullScreen();
+		UpdateWindowState();
 }
 
 void NoteView::OnClose(Msg<WM_CLOSE> & msg)
@@ -283,10 +305,9 @@ void NoteView::OnEdit(BEHAVIOR_EVENT_PARAMS * params)
 	SignalEdit();
 }
 
-void NoteView::OnFullScreen(BEHAVIOR_EVENT_PARAMS * params)
+void NoteView::OnToggle(BEHAVIOR_EVENT_PARAMS * params)
 {
-	isFullScreen = !isFullScreen;
-	UpdateFullScreen();
+	SignalToggleMaximize();
 }
 
 void NoteView::OnHome(BEHAVIOR_EVENT_PARAMS * params)

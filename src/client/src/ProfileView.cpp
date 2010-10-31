@@ -16,8 +16,8 @@ using namespace Tools;
 //----------
 
 ProfileView::ProfileView(HINSTANCE instance, bool highRes)
-	: instance (instance)
-	, HTMLayoutWindow(L"profile.htm", highRes)
+	: instance        (instance)
+	, HTMLayoutWindow (L"profile.htm", highRes)
 {
 }
 
@@ -36,9 +36,9 @@ void ProfileView::RegisterEventHandlers()
 	ConnectBehavior("#move", BUTTON_CLICK, &ProfileView::OnDbMove);
 }
 
-//--------------------------
+//----------------------------
 // IProfileView implementation
-//--------------------------
+//----------------------------
 
 void ProfileView::ConnectClose(slot_type OnClose)
 {
@@ -48,6 +48,18 @@ void ProfileView::ConnectClose(slot_type OnClose)
 void ProfileView::ConnectDbMove(slot_type OnDbMove)
 {
 	SignalDbMove.connect(OnDbMove);
+}
+
+void ProfileView::DisableMoveButton()
+{
+	element(FindFirstElement("#move"))
+		.set_attribute("disabled", L"true");
+}
+
+void ProfileView::EnableMoveButton()
+{
+	element(FindFirstElement("#move"))
+		.remove_attribute("disabled");
 }
 
 void ProfileView::Hide()
@@ -163,8 +175,16 @@ void ProfileView::ProcessMessage(WndMsg &msg)
 	}
 }
 
+//---------------------------
+// HTMLayout message handlers
+//---------------------------
+
 void ProfileView::OnDbMove(BEHAVIOR_EVENT_PARAMS * params)
 {
+	element button(FindFirstElement("#move"));
+	if (button.get_attribute("disabled"))
+		return;
+
 	SignalDbMove();
 }
 
