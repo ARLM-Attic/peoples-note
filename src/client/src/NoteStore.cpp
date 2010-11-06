@@ -64,9 +64,13 @@ void NoteStore::CreateNote
 	for (int i(0); i != resources.size(); ++i)
 	{
 		EDAM::Types::Resource & resource(enNote.resources.at(i));
+
 		resource.__isset.data = true;
 		resource.data.__isset.body = true;
 		resource.data.__isset.size = true;
+
+		resource.__isset.mime = true;
+		resource.mime = L"image/jpeg";
 
 		copy
 			( resources.at(i).Data.begin()
@@ -125,6 +129,12 @@ void NoteStore::CreateTag
 	replacement.isDirty = false;
 }
 
+void NoteStore::GetDefaultNotebook(Guid & notebook)
+{
+	EDAM::Types::Notebook enNotebook(noteStore.getDefaultNotebook(token));
+	notebook = enNotebook.guid;
+}
+
 void NoteStore::GetNoteBody
 	( const Note & note
 	, wstring    & content
@@ -157,6 +167,7 @@ void NoteStore::GetNoteResource
 	resource.Hash = HashWithMD5(resource.Data);
 	resource.Guid = enResource.guid;
 	resource.Note = enResource.noteGuid;
+	resource.Mime = enResource.mime;
 }
 
 void NoteStore::GetNoteTagNames
@@ -188,7 +199,7 @@ void NoteStore::ListEntries
 	chunk.updateCount  = 1;
 	while (chunk.chunkHighUSN < chunk.updateCount)
 	{
-		chunk = noteStore.getSyncChunk(token, chunk.chunkHighUSN, 20, true);
+		chunk = noteStore.getSyncChunk(token, chunk.chunkHighUSN, 150, true);
 		ListEntries(chunk, 0, notes, notebooks, tags, notebookFilter);
 	}
 }
@@ -341,9 +352,24 @@ void NoteStore::ListEntries
 	wstring notebookFilterGuid(ConvertToUnicode(notebookFilter));
 	if (!notebookFilter.IsLocal())
 	{
+		int noteCount(0);
 		foreach (const EDAM::Types::Note & note, chunk.notes)
 		{
 			if (note.__isset.active && !note.active)
+				continue;
+			if (note.updateSequenceNum <= globalUpdateCount)
+				continue;
+			if (note.notebookGuid != notebookFilterGuid)
+				continue;
+			++noteCount;
+		}
+		notes.reserve(notes.size() + noteCount);
+
+		foreach (const EDAM::Types::Note & note, chunk.notes)
+		{
+			if (note.__isset.active && !note.active)
+				continue;
+			if (note.updateSequenceNum <= globalUpdateCount)
 				continue;
 			if (note.notebookGuid != notebookFilterGuid)
 				continue;
@@ -362,7 +388,14 @@ void NoteStore::ListEntries
 			notes.back().usn     = notes.back().note.usn;
 			notes.back().isDirty = notes.back().note.isDirty;
 
-			// WARN: might be slow for large resource counts
+			int resourceCount(0);
+			foreach (const EDAM::Types::Resource & resource, note.resources)
+			{
+				if (resource.noteGuid == note.guid)
+					++resourceCount;
+			}
+			notes.back().resources.reserve(resourceCount);
+
 			foreach (const EDAM::Types::Resource & resource, note.resources)
 			{
 				if (resource.noteGuid == note.guid)

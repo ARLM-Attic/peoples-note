@@ -152,9 +152,9 @@ public:
 
 	virtual void LoadOrCreate(const std::wstring & username);
 
-	virtual void MakeNotebookDefault(const Notebook & notebook);
+	virtual void MakeNotebookDefault(const Guid & notebook);
 
-	virtual void MakeNotebookLastUsed(const Notebook & notebook);
+	virtual void MakeNotebookLastUsed(const Guid & notebook);
 
 	virtual void MoveToCard();
 
@@ -205,14 +205,14 @@ private:
 		, const std::wstring & name
 		);
 
-	void CreateTable(const char * sql);
-
 	void GetFirstNotebook(Notebook & notebook);
 
 	template<typename T>
 	void GetProperty(const std::wstring & name, T & value);
 
 	void Initialize(std::wstring name);
+
+	void MigrateFrom0To1();
 
 	void Move
 		( const std::wstring & oldPath

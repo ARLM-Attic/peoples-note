@@ -257,7 +257,7 @@ FIXTURE_TEST_CASE(UserModelDeleteNotebook, DataStoreFixture)
 
 	Notebook newNotebook;
 	userModel.AddNotebook(newNotebook);
-	userModel.MakeNotebookLastUsed(newNotebook);
+	userModel.MakeNotebookLastUsed(newNotebook.guid);
 	TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 2);
 
 	Notebook lastUsedNotebook;
@@ -347,7 +347,7 @@ FIXTURE_TEST_CASE(UserModelDefaultNotebook, DataStoreFixture)
 	Notebook notebook;
 	notebook.name = L"test-notebook";
 	userModel.AddNotebook(notebook);
-	userModel.MakeNotebookDefault(notebook);
+	userModel.MakeNotebookDefault(notebook.guid);
 
 	Notebook defaultNotebook;
 	userModel.GetDefaultNotebook(defaultNotebook);
@@ -544,7 +544,7 @@ FIXTURE_TEST_CASE(UserModelLastUsedNotebook, DataStoreFixture)
 	userModel.AddNotebook(notebook0);
 	userModel.AddNotebook(notebook1);
 	userModel.AddNotebook(notebook2);
-	userModel.MakeNotebookLastUsed(notebook1);
+	userModel.MakeNotebookLastUsed(notebook1.guid);
 
 	Notebook lastUsedNotebook;
 	lastUsedNotebook.isDirty = false;
@@ -607,7 +607,7 @@ AUTO_TEST_CASE(UserModelLoadAs)
 	TEST_CHECK_EXCEPTION
 		( userModel.LoadAs(storeName, dstName)
 		, std::exception
-		, MESSAGE_EQUALS("Database could not be renamed.")
+		, MESSAGE_EQUALS("Database could not be found.")
 		);
 	TEST_CHECK(!check.signalled);
 
@@ -656,7 +656,7 @@ AUTO_TEST_CASE(UserModelLoadOrCreate)
 
 		Credentials credentials;
 		userModel.GetCredentials(credentials);
-		TEST_CHECK_EQUAL(userModel.GetVersion(),       0);
+		TEST_CHECK_EQUAL(userModel.GetVersion(),       1);
 		TEST_CHECK_EQUAL(credentials.GetUsername(),    storeName);
 		TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 1);
 
@@ -677,7 +677,7 @@ AUTO_TEST_CASE(UserModelLoadOrCreate)
 
 		Credentials credentials;
 		userModel.GetCredentials(credentials);
-		TEST_CHECK_EQUAL(userModel.GetVersion(),       0);
+		TEST_CHECK_EQUAL(userModel.GetVersion(),       1);
 		TEST_CHECK_EQUAL(credentials.GetUsername(),    storeName);
 		TEST_CHECK_EQUAL(credentials.GetPassword(),    L"test-pwd");
 		TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 2);
