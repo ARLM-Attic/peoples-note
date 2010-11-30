@@ -72,10 +72,11 @@ public:
 	Guid defaultNotebook;
 	Guid lastUsedNotebook;
 
-	NotebookList notebooks;
-	NoteList     notes;
-	TagList      tags;
-	ResourceList resources;
+	NotebookList         notebooks;
+	NoteList             notes;
+	RecognitionEntryList recognitionEntries;
+	ResourceList         resources;
+	TagList              tags;
 
 	std::map<std::string, std::wstring> noteBodies;
 	std::map<std::string, Thumbnail>    noteThumbnails;
@@ -128,6 +129,8 @@ public:
 		);
 
 	virtual void AddNotebook(const Notebook & notebook);
+
+	virtual void AddRecognitionEntry(const RecognitionEntry & entry);
 
 	virtual void AddResource(const Resource & resource);
 
@@ -241,6 +244,8 @@ public:
 	virtual void MoveToCard();
 
 	virtual void MoveToDevice();
+
+	virtual void RemoveNoteTags(const Guid & note);
 
 	virtual void SetCredentials
 		( const std::wstring & username

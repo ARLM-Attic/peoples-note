@@ -7,6 +7,7 @@
 #include "Guid.h"
 #include "Note.h"
 #include "Notebook.h"
+#include "RecognitionEntry.h"
 #include "Resource.h"
 #include "Tag.h"
 #include "Thumbnail.h"
@@ -27,6 +28,8 @@ public:
 		) = 0;
 
 	virtual void AddNotebook(const Notebook & notebook) = 0;
+
+	virtual void AddRecognitionEntry(const RecognitionEntry & entry) = 0;
 
 	virtual void AddResource(const Resource & resource) = 0;
 
@@ -139,6 +142,8 @@ public:
 	virtual void MoveToCard() = 0;
 
 	virtual void MoveToDevice() = 0;
+
+	virtual void RemoveNoteTags(const Guid & note) = 0;
 
 	virtual void SetCredentials
 		( const std::wstring & username

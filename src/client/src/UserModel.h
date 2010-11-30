@@ -49,6 +49,8 @@ public:
 
 	virtual void AddNotebook(const Notebook & notebook);
 
+	virtual void AddRecognitionEntry(const RecognitionEntry & entry);
+
 	virtual void AddResource(const Resource & resource);
 
 	virtual void AddTag(const Tag & tag);
@@ -160,6 +162,8 @@ public:
 
 	virtual void MoveToDevice();
 
+	virtual void RemoveNoteTags(const Guid & note);
+
 	virtual void SetCredentials
 		( const std::wstring & username
 		, const std::wstring & password
@@ -211,9 +215,6 @@ private:
 	void GetProperty(const std::wstring & name, T & value);
 
 	void Initialize(std::wstring name);
-
-	void MigrateFrom0To1();
-	void MigrateFrom1To2();
 
 	void Move
 		( const std::wstring & oldPath
