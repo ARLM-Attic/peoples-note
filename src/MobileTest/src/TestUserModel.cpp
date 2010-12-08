@@ -192,6 +192,18 @@ FIXTURE_TEST_CASE(UserModelAddNote, DataStoreFixture)
 	}
 }
 
+FIXTURE_TEST_CASE(UserModelAddNotebook, DataStoreFixture)
+{
+	Notebook notebook;
+	notebook.name = L"test-notebook";
+	userModel.AddNotebook(notebook);
+
+	TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 2);
+
+	userModel.AddNotebook(notebook);
+	TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 2);
+}
+
 FIXTURE_TEST_CASE(UserModelCascade, DataStoreFixture)
 {
 	Notebook notebook;
@@ -215,13 +227,13 @@ FIXTURE_TEST_CASE(UserModelCascade, DataStoreFixture)
 	TEST_CHECK_EQUAL(userModel.GetNoteCount(),     2);
 	TEST_CHECK_EQUAL(userModel.GetResourceCount(), 2);
 
-	userModel.DeleteNote(note0.guid);
+	userModel.ExpungeNote(note0.guid);
 
 	TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 2);
 	TEST_CHECK_EQUAL(userModel.GetNoteCount(),     1);
 	TEST_CHECK_EQUAL(userModel.GetResourceCount(), 0);
 
-	userModel.DeleteNotebook(notebook.guid);
+	userModel.ExpungeNotebook(notebook.guid);
 
 	TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 1);
 	TEST_CHECK_EQUAL(userModel.GetNoteCount(),     0);
@@ -233,26 +245,44 @@ FIXTURE_TEST_CASE(UserModelDeleteNote, DataStoreFixture)
 	Notebook notebook;
 	userModel.GetDefaultNotebook(notebook);
 
+	Note note1;
+	Note note2;
+	userModel.AddNote(note1, L"", L"", notebook);
+	userModel.AddNote(note2, L"", L"", notebook);
+
+	userModel.DeleteNote(note2.guid);
+
+	NoteList notes;
+	userModel.GetNotesByNotebook(notebook, notes);
+	TEST_CHECK_EQUAL(notes.size(), 1);
+	TEST_CHECK_EQUAL(notes.at(0).guid, note1.guid);
+
+	GuidList deletedNotes;
+	userModel.GetDeletedNotes(deletedNotes);
+	TEST_CHECK_EQUAL(deletedNotes.size(), 1);
+	TEST_CHECK_EQUAL(deletedNotes.at(0), note2.guid);
+}
+
+FIXTURE_TEST_CASE(UserModelExpungeNote, DataStoreFixture)
+{
+	Notebook notebook;
+	userModel.GetDefaultNotebook(notebook);
+
 	Note note;
 	userModel.AddNote(note, L"", L"", notebook);
-	userModel.DeleteNote(note.guid);
+	userModel.ExpungeNote(note.guid);
 	
 	NoteList notes;
 	userModel.GetNotesByNotebook(notebook, notes);
 	TEST_CHECK(notes.empty());
 }
 
-FIXTURE_TEST_CASE(UserModelDeleteNotebook, DataStoreFixture)
+FIXTURE_TEST_CASE(UserModelExpungeNotebook, DataStoreFixture)
 {
 	Notebook defaultNotebook;
 	userModel.GetDefaultNotebook(defaultNotebook);
 
-	TEST_CHECK_EXCEPTION
-		( userModel.DeleteNotebook(defaultNotebook.guid)
-		, std::exception
-		, MESSAGE_EQUALS("Cannot delete the default notebook.")
-		);
-
+	userModel.ExpungeNotebook(defaultNotebook.guid);
 	TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 1);
 
 	Notebook newNotebook;
@@ -264,18 +294,15 @@ FIXTURE_TEST_CASE(UserModelDeleteNotebook, DataStoreFixture)
 	userModel.GetLastUsedNotebook(lastUsedNotebook);
 	TEST_CHECK_EQUAL(lastUsedNotebook.guid, newNotebook.guid);
 
-	userModel.DeleteNotebook(lastUsedNotebook.guid);
+	userModel.ExpungeNotebook(lastUsedNotebook.guid);
 	TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 1);
-
-	userModel.GetLastUsedNotebook(lastUsedNotebook);
-	TEST_CHECK_EQUAL(lastUsedNotebook.guid, defaultNotebook.guid);
 }
 
-FIXTURE_TEST_CASE(UserModelDeleteTag, DataStoreFixture)
+FIXTURE_TEST_CASE(UserModelExpungedTag, DataStoreFixture)
 {
 	Tag tag;
 	userModel.AddTag(tag);
-	userModel.DeleteTag(tag.guid);
+	userModel.ExpungeTag(tag.guid);
 	
 	TagList tags;
 	userModel.GetTags(tags);
@@ -323,23 +350,6 @@ FIXTURE_TEST_CASE(UserModelNoteForeignKey, DataStoreFixture)
 		, std::exception
 		, MESSAGE_EQUALS("foreign key constraint failed")
 		);
-}
-
-FIXTURE_TEST_CASE(UserModelAddNotebook, DataStoreFixture)
-{
-	Notebook notebook;
-	notebook.name = L"test-notebook";
-	userModel.AddNotebook(notebook);
-
-	TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 2);
-
-	TEST_CHECK_EXCEPTION
-		( userModel.AddNotebook(notebook)
-		, std::exception
-		, MESSAGE_EQUALS("column guid is not unique")
-		);
-
-	TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 2);
 }
 
 FIXTURE_TEST_CASE(UserModelDefaultNotebook, DataStoreFixture)
@@ -498,37 +508,13 @@ FIXTURE_TEST_CASE(UserModelResource1, DataStoreFixture)
 	userModel.GetLastUsedNotebook(notebook);
 	userModel.AddNote(note, L"", L"", notebook);
 	userModel.AddResource(resource);
+	userModel.AddResource(resource);
 
 	Blob loaded;
 	userModel.GetResource(hash, loaded);
 	TEST_CHECK_EQUAL(resource.Data.size(), loaded.size());
 	for (int i = 0; i != resource.Data.size(); ++i)
 		TEST_CHECK_EQUAL(resource.Data.at(i), loaded.at(i));
-}
-
-FIXTURE_TEST_CASE(UserModelResource2, DataStoreFixture)
-{
-	Note note;
-
-	Resource r1;
-	r1.Hash = "hash";
-	r1.Note = note.guid;
-
-	Resource r2;
-	r2.Hash = "hash";
-	r2.Note = note.guid;
-
-	Notebook notebook;
-	userModel.GetDefaultNotebook(notebook);
-
-	userModel.AddNote(note, L"", L"", notebook);
-	userModel.AddResource(r1);
-	
-	TEST_CHECK_EXCEPTION
-		( userModel.AddResource(r2);
-		, std::exception
-		, MESSAGE_EQUALS("column hash is not unique")
-		);
 }
 
 FIXTURE_TEST_CASE(UserModelLastUsedNotebook, DataStoreFixture)
@@ -656,7 +642,7 @@ AUTO_TEST_CASE(UserModelLoadOrCreate)
 
 		Credentials credentials;
 		userModel.GetCredentials(credentials);
-		TEST_CHECK_EQUAL(userModel.GetVersion(),       3);
+		TEST_CHECK_EQUAL(userModel.GetVersion(),       4);
 		TEST_CHECK_EQUAL(credentials.GetUsername(),    storeName);
 		TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 1);
 
@@ -677,7 +663,7 @@ AUTO_TEST_CASE(UserModelLoadOrCreate)
 
 		Credentials credentials;
 		userModel.GetCredentials(credentials);
-		TEST_CHECK_EQUAL(userModel.GetVersion(),       3);
+		TEST_CHECK_EQUAL(userModel.GetVersion(),       4);
 		TEST_CHECK_EQUAL(credentials.GetUsername(),    storeName);
 		TEST_CHECK_EQUAL(credentials.GetPassword(),    L"test-pwd");
 		TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 2);
