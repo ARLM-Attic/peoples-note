@@ -2,12 +2,14 @@
 #include "NoteView.h"
 
 #include "crackers.h"
+#include "IAnimator.h"
 #include "Rect.h"
 #include "resourceppc.h"
 #include "Tools.h"
 
 #include <fstream>
 
+using namespace boost;
 using namespace htmlayout;
 using namespace htmlayout::dom;
 using namespace std;
@@ -17,13 +19,22 @@ using namespace Tools;
 // interface
 //----------
 
-NoteView::NoteView(HINSTANCE instance, bool highRes)
-	: instance        (instance)
-	, isDirty         (false)
-	, isMaximized     (false)
-	, parent          (NULL)
-	, HTMLayoutWindow (L"note-view.htm", highRes)
+NoteView::NoteView
+	( HINSTANCE   instance
+	, bool        highRes
+	, IAnimator & animator
+	)
+	: instance         (instance)
+	, isDirty          (false)
+	, isMaximized      (false)
+	, gestureProcessor (animator)
+	, parent           (NULL)
+	, HTMLayoutWindow  (L"note-view.htm", highRes)
 {
+
+	gestureProcessor.ConnectDelayedMouseDown (bind(&NoteView::OnDelayedMouseDown, this));
+	gestureProcessor.ConnectGestureStart     (bind(&NoteView::OnGestureStart,     this));
+	gestureProcessor.ConnectGestureStep      (bind(&NoteView::OnGestureStep,      this));
 }
 
 void NoteView::Create(HWND parent)
@@ -65,6 +76,12 @@ void NoteView::RegisterEventHandlers()
 	ConnectBehavior("#edit",        BUTTON_CLICK, &NoteView::OnEdit);
 	ConnectBehavior("#full-screen", BUTTON_CLICK, &NoteView::OnToggle);
 	ConnectBehavior("#home",        BUTTON_CLICK, &NoteView::OnHome);
+
+	body    = FindFirstElement("#note");
+	vScroll = FindFirstElement("#vscroll");
+	vSlider = FindFirstElement("#vscroll > #slider");
+	hScroll = FindFirstElement("#hscroll");
+	hSlider = FindFirstElement("#hscroll > #slider");
 }
 
 //-------------------------
@@ -95,7 +112,7 @@ static void CALLBACK _writer_a(LPCBYTE utf8, UINT utf8_length, LPVOID param)
 void NoteView::GetBody(wstring & html)
 {
 	HTMLayoutGetElementHtmlCB
-		( FindFirstElement("#body") // he
+		( FindFirstElement("#note") // he
 		, false                     // outer
 		, _writer_a                 // cb
 		, &html                     // cb_param
@@ -118,6 +135,7 @@ void NoteView::Hide()
 		return;
 	::EnableWindow(parent, TRUE);
 	::ShowWindow(hwnd_, SW_HIDE);
+	HideScrollbar();
 	SignalClose();
 }
 
@@ -173,9 +191,10 @@ void NoteView::SetNote
 	vector<unsigned char> utf8Chars;
 	const unsigned char * utf8 = Tools::ConvertToUtf8(bodyHtml, utf8Chars);
 
-	DisconnectBehavior("#body input");
+	DisconnectBehavior("#note input");
 	body.set_html(utf8, utf8Chars.size());
-	ConnectBehavior("#body input", BUTTON_STATE_CHANGED, &NoteView::OnInput);
+	ConnectBehavior("#note input", BUTTON_STATE_CHANGED, &NoteView::OnInput);
+
 }
 
 void NoteView::SetWindowTitle(const std::wstring & text)
@@ -189,17 +208,37 @@ void NoteView::Show()
 		return;
 
 	::EnableWindow(parent, FALSE);
-	::ShowWindow(hwnd_, SW_SHOW);
-	::UpdateWindow(hwnd_);
 	::BringWindowToTop(hwnd_);
 
-	element root = element::root_element(hwnd_);
-	root.update(true);
+	ShowScrollbar();
+	element(element::root_element(hwnd_)).update(MEASURE_DEEP|REDRAW_NOW);
+	POINT scrollPos = { 0 };
+	SetScrollPos(scrollPos);
+	UpdateScrollbar();
+
+	::ShowWindow(hwnd_, SW_SHOW);
+	::UpdateWindow(hwnd_);
 }
 
 //------------------
 // utility functions
 //------------------
+
+POINT NoteView::GetScrollPos()
+{
+	POINT scrollPos;
+	RECT  viewRect;
+	SIZE  contentSize;
+	element body(FindFirstElement("#note"));
+	body.get_scroll_info(scrollPos, viewRect, contentSize);
+	return scrollPos;
+}
+
+void NoteView::HideScrollbar()
+{
+	vScroll.set_style_attribute("display", L"none");
+	hScroll.set_style_attribute("display", L"none");
+}
 
 ATOM NoteView::RegisterClass(const wstring & wndClass)
 {
@@ -211,6 +250,132 @@ ATOM NoteView::RegisterClass(const wstring & wndClass)
 	wc.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
 	wc.lpszClassName = wndClass.c_str();
 	return ::RegisterClass(&wc);
+}
+
+void NoteView::SetScrollPos(POINT pos)
+{
+	POINT scrollPos;
+	Rect  viewRect;
+	SIZE  contentSize;
+	body.get_scroll_info(scrollPos, viewRect, contentSize);
+	int contentHeight(contentSize.cy);
+
+	Rect listRect(body.get_location(SCROLLABLE_AREA));
+	if (listRect.GetWidth() == 0 || listRect.GetHeight() == 0)
+		return;
+
+	SIZE contentDistance =
+		{ contentSize.cx - listRect.GetWidth()
+		, contentSize.cy - listRect.GetHeight()
+		};
+
+	pos.x = max(min(pos.x, contentDistance.cx), 0);
+	pos.y = max(min(pos.y, contentDistance.cy), 0);
+	body.set_scroll_pos(pos, false);
+
+	if (contentDistance.cy > 0)
+	{
+		Rect vScrollRect(vScroll.get_location(ROOT_RELATIVE|CONTENT_BOX));
+		Rect vSliderRect(vSlider.get_location(CONTAINER_RELATIVE|BORDER_BOX));
+
+		__int64 vScrollDistance(vScrollRect.GetHeight() - vSliderRect.GetHeight());
+		if (vScrollDistance <= 0L)
+			return;
+
+		POINT vScrollPos =
+			{ 0
+			, -static_cast<int>(pos.y * vScrollDistance / contentDistance.cy)
+			};
+		vScroll.set_scroll_pos(vScrollPos, false);
+	}
+
+	if (contentDistance.cx > 0)
+	{
+		Rect hScrollRect(hScroll.get_location(ROOT_RELATIVE|CONTENT_BOX));
+		Rect hSliderRect(hSlider.get_location(CONTAINER_RELATIVE|BORDER_BOX));
+
+		__int64 hScrollDistance(hScrollRect.GetWidth() - hSliderRect.GetWidth());
+		if (hScrollDistance <= 0L)
+			return;
+
+		POINT hScrollPos =
+			{ -static_cast<int>(pos.x * hScrollDistance / contentDistance.cx)
+			, 0
+			};
+		hScroll.set_scroll_pos(hScrollPos, false);
+	}
+}
+
+void NoteView::ShowScrollbar()
+{
+	vScroll.set_style_attribute("display", L"block");
+	hScroll.set_style_attribute("display", L"block");
+}
+
+void NoteView::UpdateScrollbar()
+{
+	Rect listRect(body.get_location(SCROLLABLE_AREA));
+	if (listRect.GetWidth() == 0 || listRect.GetHeight() == 0)
+		return;
+
+	POINT scrollPos;
+	RECT  viewRect;
+	SIZE  contentSize;
+	body.get_scroll_info(scrollPos, viewRect, contentSize);
+	if (contentSize.cy > 0)
+	{
+		if (contentSize.cy <= listRect.GetHeight())
+		{
+			vSlider.set_style_attribute("display", L"none");
+			return;
+		}
+		else
+		{
+			vSlider.set_style_attribute("display", L"block");
+		}
+
+		Rect scrollRect(vScroll.get_location(ROOT_RELATIVE|CONTENT_BOX));
+		if (scrollRect.GetHeight() == 0)
+			return;
+
+		int sliderHeight
+			( static_cast<int>
+				( static_cast<__int64>(scrollRect.GetHeight())
+				* listRect.GetHeight() / contentSize.cy
+				)
+			);
+
+		wchar_t text[16];
+		_itow_s(sliderHeight, text, 16, 10);
+		vSlider.set_style_attribute("height", text);
+	}
+	if (contentSize.cx > 0)
+	{
+		if (contentSize.cx <= listRect.GetWidth())
+		{
+			hSlider.set_style_attribute("display", L"none");
+			return;
+		}
+		else
+		{
+			hSlider.set_style_attribute("display", L"block");
+		}
+
+		Rect scrollRect(hScroll.get_location(ROOT_RELATIVE|CONTENT_BOX));
+		if (scrollRect.GetWidth() == 0)
+			return;
+
+		int sliderWidth
+			( static_cast<int>
+				( static_cast<__int64>(scrollRect.GetWidth())
+				* listRect.GetWidth() / contentSize.cx
+				)
+			);
+
+		wchar_t text[16];
+		_itow_s(sliderWidth, text, 16, 10);
+		hSlider.set_style_attribute("height", text);
+	}
 }
 
 void NoteView::UpdateWindowState()
@@ -251,6 +416,30 @@ void NoteView::UpdateWindowState()
 	img.update();
 }
 
+//-------------------------
+// gesture message handlers
+//-------------------------
+
+void NoteView::OnDelayedMouseDown()
+{
+	__super::ProcessMessage(*gestureProcessor.GetMouseDownMessage());
+}
+
+void NoteView::OnGestureStart()
+{
+	startScrollPos = GetScrollPos();
+}
+
+void NoteView::OnGestureStep()
+{
+	SIZE offset(gestureProcessor.GetScrollDistance());
+	POINT distance =
+		{ startScrollPos.x + offset.cx
+		, startScrollPos.y + offset.cy
+		};
+	SetScrollPos(distance);
+}
+
 //------------------------
 // window message handlers
 //------------------------
@@ -276,6 +465,29 @@ void NoteView::OnCommand(Msg<WM_COMMAND> & msg)
 	}
 }
 
+void NoteView::OnMouseDown(Msg<WM_LBUTTONDOWN> & msg)
+{
+	::SetCapture(hwnd_);
+
+	gestureProcessor.OnMouseDown(msg);
+
+	msg.handled_ = true;
+}
+
+void NoteView::OnMouseMove(Msg<WM_MOUSEMOVE> & msg)
+{
+	msg.handled_ = true;
+
+	gestureProcessor.OnMouseMove(msg);
+}
+
+void NoteView::OnMouseUp(Msg<WM_LBUTTONUP> & msg)
+{
+	::ReleaseCapture();
+
+	gestureProcessor.OnMouseUp(msg);
+}
+
 void NoteView::ProcessMessage(WndMsg &msg)
 {
 	static Handler mmp[] =
@@ -283,6 +495,9 @@ void NoteView::ProcessMessage(WndMsg &msg)
 		&NoteView::OnActivate,
 		&NoteView::OnClose,
 		&NoteView::OnCommand,
+		&NoteView::OnMouseDown,
+		&NoteView::OnMouseMove,
+		&NoteView::OnMouseUp,
 	};
 	try
 	{

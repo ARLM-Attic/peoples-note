@@ -3,19 +3,36 @@
 #include "HTMLayoutWindow.h"
 #include "INoteView.h"
 #include "Note.h"
+#include "NoteViewGestureProcessor.h"
 #include "WindowRenderer.h"
+
+class IAnimator;
 
 class NoteView : public HTMLayoutWindow, public INoteView
 {
 private:
 
+	typedef htmlayout::dom::element element;
+
+private:
+
 	HWND      parent;
 	HINSTANCE instance;
 
+	NoteViewGestureProcessor gestureProcessor;
+
 	Note note;
+
+	POINT startScrollPos;
 
 	bool isDirty;
 	bool isMaximized;
+
+	element body;
+	element vScroll;
+	element vSlider;
+	element hScroll;
+	element hSlider;
 
 	signal SignalClose;
 	signal SignalEdit;
@@ -25,7 +42,10 @@ private:
 
 public:
 
-	NoteView(HINSTANCE instance, bool highRes);
+	NoteView
+		( HINSTANCE   instance
+		, bool        highRes
+		, IAnimator & animator);
 
 	void Create(HWND parent);
 
@@ -74,9 +94,27 @@ public:
 
 private:
 
+	POINT GetScrollPos();
+
+	void HideScrollbar();
+
 	ATOM RegisterClass(const std::wstring & wndClass);
 
+	void SetScrollPos(POINT pos);
+
+	void ShowScrollbar();
+
+	void UpdateScrollbar();
+
 	void UpdateWindowState();
+
+// gesture message handlers
+
+private:
+
+	void OnDelayedMouseDown();
+	void OnGestureStart();
+	void OnGestureStep();
 
 // window message handlers
 
@@ -85,6 +123,9 @@ private:
 	void OnActivate (Msg<WM_ACTIVATE> & msg);
 	void OnClose    (Msg<WM_CLOSE>    & msg);
 	void OnCommand  (Msg<WM_COMMAND>  & msg);
+	void OnMouseDown      (Msg<WM_LBUTTONDOWN>    & msg);
+	void OnMouseUp        (Msg<WM_LBUTTONUP>      & msg);
+	void OnMouseMove      (Msg<WM_MOUSEMOVE>      & msg);
 
 	virtual void ProcessMessage(WndMsg &msg);
 
