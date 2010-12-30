@@ -1,7 +1,7 @@
 #pragma once
+#include "INoteView.h"
 
 #include "HTMLayoutWindow.h"
-#include "INoteView.h"
 #include "Note.h"
 #include "NoteViewGestureProcessor.h"
 #include "WindowRenderer.h"
@@ -120,12 +120,13 @@ private:
 
 private:
 
-	void OnActivate (Msg<WM_ACTIVATE> & msg);
-	void OnClose    (Msg<WM_CLOSE>    & msg);
-	void OnCommand  (Msg<WM_COMMAND>  & msg);
-	void OnMouseDown      (Msg<WM_LBUTTONDOWN>    & msg);
-	void OnMouseUp        (Msg<WM_LBUTTONUP>      & msg);
-	void OnMouseMove      (Msg<WM_MOUSEMOVE>      & msg);
+	void OnActivate  (Msg<WM_ACTIVATE>    & msg);
+	void OnClose     (Msg<WM_CLOSE>       & msg);
+	void OnCommand   (Msg<WM_COMMAND>     & msg);
+	void OnMouseDown (Msg<WM_LBUTTONDOWN> & msg);
+	void OnMouseUp   (Msg<WM_LBUTTONUP>   & msg);
+	void OnMouseMove (Msg<WM_MOUSEMOVE>   & msg);
+	void OnKeyUp     (Msg<WM_KEYUP>       & msg);
 
 	virtual void ProcessMessage(WndMsg &msg);
 
