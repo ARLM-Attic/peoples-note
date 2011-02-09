@@ -13,7 +13,10 @@ public:
 	virtual void AddNote
 		( const std::wstring & html
 		, const std::wstring & value
+		,       bool           isDirty
 		) = 0;
+
+	virtual void CheckNotebookTitleOption() = 0;
 
 	virtual void ConnectAbout(slot_type OnAbout) = 0;
 
@@ -28,6 +31,8 @@ public:
 	virtual void ConnectNewPhotoNote(slot_type OnNewPhoto) = 0;
 
 	virtual void ConnectNotebookSelected(slot_type OnNotebookSelected) = 0;
+
+	virtual void ConnectNotebookTitle(slot_type OnNotebookTitle) = 0;
 
 	virtual void ConnectOpenNote(slot_type OnOpenNote) = 0;
 
@@ -61,11 +66,15 @@ public:
 
 	virtual std::wstring GetSearchString() = 0;
 
+	virtual void HideNotebookTitle() = 0;
+
 	virtual void HidePageDown() = 0;
 
 	virtual void HidePageUp() = 0;
 
 	virtual void HideSyncButton() = 0;
+
+	virtual bool IsNotebookTitleOptionChecked() = 0;
 
 	virtual void SetNotebookMenu(const std::wstring & html) = 0;
 
@@ -87,11 +96,15 @@ public:
 
 	virtual void SetWindowTitle(const std::wstring & text) = 0;
 
+	virtual void ShowNotebookTitle() = 0;
+
 	virtual void ShowPageDown() = 0;
 
 	virtual void ShowPageUp() = 0;
 
 	virtual void ShowSyncButton() = 0;
+
+	virtual void UncheckNotebookTitleOption() = 0;
 
 	virtual void UpdateNotes() = 0;
 

@@ -39,6 +39,9 @@ NoteListPresenter::NoteListPresenter
 	noteListView.ConnectNotebookSelected
 		(bind(&NoteListPresenter::OnNotebookSelected, this));
 
+	noteListView.ConnectNotebookTitle
+		(bind(&NoteListPresenter::OnNotebookTitle, this));
+
 	noteListView.ConnectPageDown
 		(bind(&NoteListPresenter::OnPageDown, this));
 
@@ -101,6 +104,13 @@ void NoteListPresenter::OnNotebookSelected()
 	UpdateSyncCounter();
 }
 
+void NoteListPresenter::OnNotebookTitle()
+{
+	bool isEnabled(noteListView.IsNotebookTitleOptionChecked());
+	noteListModel.SetNotebookTitleState(!isEnabled);
+	UpdateNotebookTitleState();
+}
+
 void NoteListPresenter::OnNoteListChanged()
 {
 	if (noteListModel.HasPreviousNotes())
@@ -121,7 +131,7 @@ void NoteListPresenter::OnNoteListChanged()
 	{
 		const Note & note(*notesBegin);
 		wstring guid(ConvertToUnicode(note.guid));
-		noteListView.AddNote(ConvertToHtml(note, guid), guid);
+		noteListView.AddNote(ConvertToHtml(note, guid), guid, note.isDirty);
 	}
 	noteListView.UpdateNotes();
 
@@ -169,6 +179,8 @@ void NoteListPresenter::OnSyncStatusUpdated()
 
 void NoteListPresenter::OnUserLoaded()
 {
+	UpdateNotebookTitleState();
+
 	Transaction transaction(userModel);
 
 	UpdateTitle();
@@ -220,6 +232,20 @@ void NoteListPresenter::UpdateNotebookListView()
 	wstring menuHtml;
 	NotebookMenuGenerator::GetMenuHtml(notebooks, 6, menuHtml);
 	noteListView.SetNotebookMenu(menuHtml);
+}
+
+void NoteListPresenter::UpdateNotebookTitleState()
+{
+	if (noteListModel.GetNotebookTitleState())
+	{
+		noteListView.CheckNotebookTitleOption();
+		noteListView.ShowNotebookTitle();
+	}
+	else
+	{
+		noteListView.UncheckNotebookTitleOption();
+		noteListView.HideNotebookTitle();
+	}
 }
 
 void NoteListPresenter::UpdateSyncCounter()

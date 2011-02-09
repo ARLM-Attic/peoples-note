@@ -5,6 +5,7 @@
 			body
 			{
 				background : white;
+				color      : black;
 				font-size  : 26px;
 				margin     : 0px;
 				padding    : 0px;
@@ -20,6 +21,14 @@
 				padding        : 0px 10px;
 				width          : 0px;
 				vertical-align : middle;
+			}
+			#notebook-title
+			{
+				border-style : none;
+				display      : none;
+				height       : 32px;
+				overflow     : hidden;
+				width        : 100%;
 			}
 			#note-list-panel
 			{
@@ -38,10 +47,12 @@
 			}
 			#note-list .note
 			{
-				background : url(corner.png) no-repeat right top;
-				border-top : 1px solid #606060;
-				height     : 100px;
-				overflow   : hidden;
+				background-image    : url(corner.png);
+				background-position : right top;
+				background-repeat   : no-repeat;
+				border-top          : 1px solid #606060;
+				height              : 100px;
+				overflow            : hidden;
 			}
 			#note-list .note #thumb
 			{
@@ -61,6 +72,15 @@
 				font-weight : bold;
 				line-height : 23px;
 				white-space : normal;
+			}
+			#note-list .note[dirty]
+			{
+				background-image : url(corner-light.png);
+				background-color : #f0ecb0;
+			}
+			#note-list .note[dirty] #thumb
+			{
+				border-right : 4px solid #f0ecb0;
 			}
 			#new-note-note
 			{
@@ -127,14 +147,8 @@
 			}
 			#search-box
 			{
-				background-image    : url(inputshadow.png);
-				background-position : 13px 13px 13px 13px;
-				background-repeat   : expand;
-				font-size           : 24px;
-				height              : 40px;
-				margin              : 8px 0px 8px 8px;
-				padding             : 0px 10px;
-				width               : 100%%;
+				margin : 8px 0px 8px 8px;
+				width  : 100%%;
 			}
 			#search-button
 			{
@@ -222,6 +236,8 @@
 		</style>
 	</head>
 	<body>
+		<div #notebook-title>
+		</div>
 		<div #search-frame>
 			<widget #search-box    type="text"   tabindex="2" />
 			<widget #search-button type="button" tabindex="3" />
@@ -251,6 +267,8 @@
 					<menu>
 						<li #menu-profile />
 						<li #menu-signin>Sign in</li>
+						<hr />
+						<li #menu-notebook-title>Show title</li>
 						<hr />
 						<li>Notebook <menu #notebook-list /></li>
 						<li #menu-import>Import notes</li>

@@ -5,6 +5,8 @@ using namespace std;
 
 MockNoteListView::MockNoteListView()
 	: notesUpdated              (true)
+	, isNotebookTitleEnabled    (false)
+	, isNotebookTitleVisible    (false)
 	, isPageDownVisible         (false)
 	, isPageUpVisible           (false)
 	, isSearchButtonSetToSearch (true)
@@ -16,12 +18,19 @@ MockNoteListView::MockNoteListView()
 void MockNoteListView::AddNote
 	( const wstring & html
 	, const wstring & value
+	,       bool      isDirty
 	)
 {
 	notes.push_back(NoteRecord());
-	notes.back().html  = html;
-	notes.back().value = value;
+	notes.back().html    = html;
+	notes.back().value   = value;
+	notes.back().isDirty = isDirty;
 	notesUpdated = false;
+}
+
+void MockNoteListView::CheckNotebookTitleOption()
+{
+	isNotebookTitleEnabled = true;
 }
 
 void MockNoteListView::ClearNotes()
@@ -68,6 +77,11 @@ void MockNoteListView::ConnectNewPhotoNote(slot_type OnNewPhoto)
 void MockNoteListView::ConnectNotebookSelected(slot_type OnNotebookSelected)
 {
 	SignalNotebookSelected.connect(OnNotebookSelected);
+}
+
+void MockNoteListView::ConnectNotebookTitle(slot_type OnNotebookTitle)
+{
+	SignalNotebookTitle.connect(OnNotebookTitle);
 }
 
 void MockNoteListView::ConnectOpenNote(slot_type OnOpenNote)
@@ -147,6 +161,11 @@ void MockNoteListView::GetThumbSize(SIZE & size)
 	size = thumbSize;
 }
 
+void MockNoteListView::HideNotebookTitle()
+{
+	isNotebookTitleVisible = false;
+}
+
 void MockNoteListView::HidePageDown()
 {
 	isPageDownVisible = false;
@@ -160,6 +179,11 @@ void MockNoteListView::HidePageUp()
 void MockNoteListView::HideSyncButton()
 {
 	isSyncButtonShown = false;
+}
+
+bool MockNoteListView::IsNotebookTitleOptionChecked()
+{
+	return isNotebookTitleEnabled;
 }
 
 void MockNoteListView::SetNotebookMenu(const wstring & html)
@@ -212,6 +236,11 @@ void MockNoteListView::SetWindowTitle(const wstring & text)
 	windowTitle = text;
 }
 
+void MockNoteListView::ShowNotebookTitle()
+{
+	isNotebookTitleVisible = true;
+}
+
 void MockNoteListView::ShowPageDown()
 {
 	isPageDownVisible = true;
@@ -225,6 +254,11 @@ void MockNoteListView::ShowPageUp()
 void MockNoteListView::ShowSyncButton()
 {
 	isSyncButtonShown = true;
+}
+
+void MockNoteListView::UncheckNotebookTitleOption()
+{
+	isNotebookTitleEnabled = false;
 }
 
 void MockNoteListView::UpdateNotes()

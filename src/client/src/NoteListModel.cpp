@@ -2,6 +2,7 @@
 #include "NoteListModel.h"
 #include <vector>
 
+#include "IRegistryKey.h"
 #include "IUserModel.h"
 #include "Transaction.h"
 
@@ -9,11 +10,13 @@ using namespace boost;
 using namespace std;
 
 NoteListModel::NoteListModel
-	( int          pageSize
-	, IUserModel & userModel
+	( int            pageSize
+	, IUserModel   & userModel
+	, IRegistryKey & registryKey
 	)
 	: currentPage (0)
 	, pageSize    (pageSize)
+	, registryKey (registryKey)
 	, userModel   (userModel)
 {
 }
@@ -30,16 +33,18 @@ void NoteListModel::GetCurrentPage
 	)
 {
 	// the checks could be simpler, if not for iterator verification
-	begin =
-		(notes.end() - notes.begin() > currentPage * pageSize)
-		? notes.begin() + currentPage * pageSize
-		: notes.end()
-		;
+	begin = notes.begin() + currentPage * pageSize;
 	end =
 		(notes.end() - begin > pageSize)
 		? begin + pageSize
 		: notes.end()
 		;
+}
+
+bool NoteListModel::GetNotebookTitleState()
+{
+	wstring state = registryKey.GetString(L"notebook title state", L"disabled");
+	return state == L"enabled";
 }
 
 bool NoteListModel::HasNextNotes()
@@ -79,6 +84,13 @@ void NoteListModel::SelectPreviousPage()
 	SignalChanged();
 }
 
+void NoteListModel::SetNotebookTitleState(bool isEnabled)
+{
+	registryKey.SetString
+		( L"notebook title state"
+		, isEnabled ? L"enabled" : L"disabled"
+		);
+}
 
 void NoteListModel::SetNotes(const NoteList & notes)
 {
