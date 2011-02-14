@@ -12,29 +12,35 @@ class EnNoteTranslator;
 class IEnService;
 class IMessagePump;
 class INoteStore;
-class ISyncLogger;
+class ILogger;
 class IUserModel;
 
 
 class SyncModel : public ISyncModel
 {
+// events
+
+	MacroEvent(NotebooksChanged)
+	MacroEvent(NotesChanged)
+	MacroEvent(StatusUpdated)
+	MacroEvent(TagsChanged)
+	MacroEvent(SyncComplete)
+
 // types
 
 private:
 
-	struct ExceptionMessage
+	class LoggerRAII
 	{
-		std::wstring Title;
-		std::wstring Message;
+	private:
 
-		ExceptionMessage
-			( const std::wstring & title
-			, const std::wstring & message
-			)
-			: Title   (title)
-			, Message (message)
-		{
-		}
+		ILogger & logger;
+
+	public:
+
+		LoggerRAII(ILogger & logger);
+
+		~LoggerRAII();
 	};
 
 // data
@@ -44,7 +50,7 @@ private:
 	EnNoteTranslator & enNoteTranslator;
 	IEnService       & enService;
 	IMessagePump     & messagePump;
-	ISyncLogger      & syncLogger;
+	ILogger      & logger;
 	IUserModel       & userModel;
 
 	HANDLE syncThread;
@@ -58,12 +64,6 @@ private:
 	std::wstring statusText;
 	double       syncProgress;
 
-	signal SignalNotebooksChanged;
-	signal SignalNotesChanged;
-	signal SignalTagsChanged;
-	signal SignalStatusUpdated;
-	signal SignalSyncComplete;
-
 // interface
 
 public:
@@ -73,7 +73,7 @@ public:
 		, IEnService       & enService
 		, IMessagePump     & messagePump
 		, IUserModel       & userModel
-		, ISyncLogger      & logger
+		, ILogger      & logger
 		);
 
 	~SyncModel();
@@ -87,16 +87,6 @@ public:
 public:
 
 	virtual void BeginSync(const std::wstring & username);
-
-	virtual void ConnectNotebooksChanged(slot_type OnNotebooksChanged);
-
-	virtual void ConnectNotesChanged(slot_type OnNotesChanged);
-
-	virtual void ConnectStatusUpdated(slot_type OnStatusUpdated);
-
-	virtual void ConnectTagsChanged(slot_type OnTagsChanged);
-
-	virtual void ConnectSyncComplete(slot_type OnSyncComplete);
 
 	virtual const wchar_t * GetStatusText();
 
@@ -117,8 +107,6 @@ private:
 		( const wchar_t * logMessage
 		, const wchar_t * friendlyMessage
 		);
-
-	ExceptionMessage GetExceptionMessage();
 
 	void PostProgressMessage     (double          progress);
 	void PostTextMessage         (const wchar_t * text);

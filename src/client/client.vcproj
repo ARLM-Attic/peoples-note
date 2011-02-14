@@ -539,6 +539,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\Logger.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Main.cpp"
 				>
 			</File>
@@ -744,10 +748,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\src\SyncLogger.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\SyncLogic.cpp"
 				>
 			</File>
@@ -906,6 +906,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\Event.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ExceptionMessage.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\File.h"
 				>
 			</File>
@@ -998,6 +1006,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\ILogger.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\ImagingException.h"
 				>
 			</File>
@@ -1074,10 +1086,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\ISyncLogger.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\ISyncModel.h"
 				>
 			</File>
@@ -1091,6 +1099,10 @@
 			</File>
 			<File
 				RelativePath=".\src\LastUserModel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\Logger.h"
 				>
 			</File>
 			<File
@@ -1219,10 +1231,6 @@
 			</File>
 			<File
 				RelativePath=".\src\stdafx.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\SyncLogger.h"
 				>
 			</File>
 			<File
@@ -1663,6 +1671,16 @@
 			</File>
 			<File
 				RelativePath=".\html-lr\signin-view.htm"
+				>
+			</File>
+			<File
+				RelativePath=".\html\voice-edit.htm"
+				DeploymentContent="true"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\voice-edit.htm"
+				DeploymentContent="true"
 				>
 			</File>
 		</Filter>

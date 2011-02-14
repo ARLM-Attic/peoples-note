@@ -7,6 +7,7 @@
 #include "Evernote/EDAM/UserStore.h"
 
 #include "API Key.h"
+#include "ILogger.h"
 #include "Tools.h"
 #include "Transaction.h"
 
@@ -17,6 +18,11 @@ using namespace Thrift::Protocol;
 using namespace Thrift::Transport;
 
 using namespace Evernote;
+
+UserStore::UserStore(ILogger & logger)
+	: logger (logger)
+{
+}
 
 IUserStore::AuthenticationResult UserStore::GetAuthenticationToken
 	( wstring username
@@ -61,14 +67,17 @@ IUserStore::AuthenticationResult UserStore::GetAuthenticationToken
 	}
 	catch (const Thrift::Transport::TTransportException &)
 	{
+		logger.AuthorizationError(username, logger.GetExceptionMessage().Message);
 		result.Message = L"Network error";
 	}
 	catch (const EDAM::Error::EDAMUserException &)
 	{
+		logger.AuthorizationError(username, logger.GetExceptionMessage().Message);
 		result.Message = L"Invalid username or password";
 	}
 	catch (const TException &)
 	{
+		logger.AuthorizationError(username, logger.GetExceptionMessage().Message);
 		result.Message = L"Something went wrong";
 	}
 	return result;
