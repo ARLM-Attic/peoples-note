@@ -1,7 +1,7 @@
 #pragma once
+#include "IPhotoEditorView.h"
 
 #include "HTMLayoutWindow.h"
-#include "IPhotoEditorView.h"
 
 class PhotoEditorView : public HTMLayoutWindow, public IPhotoEditorView
 {

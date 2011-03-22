@@ -3,6 +3,7 @@
 #include "AboutPresenter.h"
 #include "AboutView.h"
 #include "Animator.h"
+#include "Audio.h"
 #include "CredentialsPresenter.h"
 #include "CredentialsView.h"
 #include "DataStore.h"
@@ -39,6 +40,9 @@
 #include "UserLoader.h"
 #include "UserModel.h"
 #include "UserSignInPresenter.h"
+#include "VoiceEditorModel.h"
+#include "VoiceEditorPresenter.h"
+#include "VoiceEditorView.h"
 
 #include "htmlayout.h"
 #include "resourceppc.h"
@@ -134,6 +138,7 @@ int WINAPI WinMain(HINSTANCE instance,
 		bool    highRes            (IsHighRes());
 
 		Animator         animator;
+		Audio            audio;
 		File             file;
 		FlashCard        flashCard;
 		RegistryKey      registryKey(L"Software\\People's Note");
@@ -143,7 +148,7 @@ int WINAPI WinMain(HINSTANCE instance,
 		EnNoteTranslator enNoteTranslator;
 		MessagePump      messagePump;
 		Logger           logger(deviceDocumentPath);
-		
+
 		EnService enService(logger);
 
 		CredentialsModel newCredentials;
@@ -152,6 +157,7 @@ int WINAPI WinMain(HINSTANCE instance,
 		PhotoEditorModel photoEditorModel(registryKey);
 		UserModel        userModel     (dataStore,     deviceDocumentPath, flashCard);
 		UserModel        syncUserModel (syncDataStore, deviceDocumentPath, flashCard);
+		VoiceEditorModel voiceEditorModel;
 
 		NoteListModel noteListModel(20, userModel, registryKey);
 		SyncModel     syncModel(enNoteTranslator, enService, messagePump, syncUserModel, logger);
@@ -164,6 +170,7 @@ int WINAPI WinMain(HINSTANCE instance,
 		NoteListView    noteListView    (instance, highRes, animator, nCmdShow);
 		PhotoEditorView photoEditorView (instance, highRes);
 		ProfileView     profileView     (instance, highRes);
+		VoiceEditorView voiceEditorView (instance, highRes);
 
 		HtmlDataLoader htmlDataLoader
 			( highRes
@@ -205,6 +212,7 @@ int WINAPI WinMain(HINSTANCE instance,
 			, noteListView
 			, photoEditorView
 			, profileView
+			, voiceEditorView
 			, htmlDataLoader
 			);
 		InkEditorPresenter
@@ -266,6 +274,13 @@ int WINAPI WinMain(HINSTANCE instance,
 			, noteListView
 			, userModel
 			);
+		VoiceEditorPresenter voiceEditorPresenter
+			( audio
+			, noteListView
+			, voiceEditorModel
+			, voiceEditorView
+			, userModel
+			);
 
 		noteListView.Create();
 		noteView.Create        (noteListView.hwnd_);
@@ -275,6 +290,7 @@ int WINAPI WinMain(HINSTANCE instance,
 		credentialsView.Create (noteListView.hwnd_);
 		aboutView.Create       (noteListView.hwnd_);
 		profileView.Create     (noteListView.hwnd_);
+		voiceEditorView.Create (noteListView.hwnd_);
 
 		userLoader.Run();
 		int result(RunMessageLoop(animator, syncModel));

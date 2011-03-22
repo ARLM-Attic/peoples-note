@@ -251,6 +251,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\MockAudio.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\MockCredentialsModel.cpp"
 				>
 			</File>
@@ -340,6 +344,14 @@
 			</File>
 			<File
 				RelativePath=".\src\MockUserStore.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\MockVoiceEditorModel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\MockVoiceEditorView.cpp"
 				>
 			</File>
 			<File
@@ -548,6 +560,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\TestVoiceEditorPresenter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\TException.cpp"
 				>
 			</File>
@@ -583,6 +599,10 @@
 				RelativePath="..\client\src\UserSignInPresenter.cpp"
 				>
 			</File>
+			<File
+				RelativePath="..\client\src\VoiceEditorPresenter.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -595,6 +615,10 @@
 			</File>
 			<File
 				RelativePath=".\src\MockAboutView.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\MockAudio.h"
 				>
 			</File>
 			<File
@@ -687,6 +711,14 @@
 			</File>
 			<File
 				RelativePath=".\src\MockUserStore.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\MockVoiceEditorModel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\MockVoiceEditorView.h"
 				>
 			</File>
 			<File

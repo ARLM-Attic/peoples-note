@@ -69,7 +69,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions=" /subsystem:windowsce,5.01"
-				AdditionalDependencies="&quot;$(SolutionDir)HTMLayout\bin\windows mobile 5.0 pocket pc sdk (armv4i)\htmlayout.lib&quot; &quot;$(SolutionDir)Evernote API\$(PlatformName)\$(ConfigurationName)\Evernote API.lib&quot; &quot;$(SolutionDir)CallDump\$(PlatformName)\$(ConfigurationName)\CallDump.lib&quot; wininet.lib Imaging.lib note_prj.lib"
+				AdditionalDependencies="&quot;$(SolutionDir)HTMLayout\bin\windows mobile 5.0 pocket pc sdk (armv4i)\htmlayout.lib&quot; &quot;$(SolutionDir)Evernote API\$(PlatformName)\$(ConfigurationName)\Evernote API.lib&quot; &quot;$(SolutionDir)CallDump\$(PlatformName)\$(ConfigurationName)\CallDump.lib&quot; wininet.lib Imaging.lib note_prj.lib voicectl.lib"
 				OutputFile="$(OutDir)/pnote.exe"
 				LinkIncremental="2"
 				DelayLoadDLLs="$(NOINHERIT)"
@@ -161,7 +161,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions=" /subsystem:windowsce,5.02"
-				AdditionalDependencies="&quot;$(SolutionDir)HTMLayout\bin\windows mobile 5.0 pocket pc sdk (armv4i)\htmlayout.lib&quot; &quot;$(SolutionDir)Evernote API\$(PlatformName)\$(ConfigurationName)\Evernote API.lib&quot; &quot;$(SolutionDir)CallDump\$(PlatformName)\$(ConfigurationName)\CallDump.lib&quot; wininet.lib Imaging.lib note_prj.lib"
+				AdditionalDependencies="&quot;$(SolutionDir)HTMLayout\bin\windows mobile 5.0 pocket pc sdk (armv4i)\htmlayout.lib&quot; &quot;$(SolutionDir)Evernote API\$(PlatformName)\$(ConfigurationName)\Evernote API.lib&quot; &quot;$(SolutionDir)CallDump\$(PlatformName)\$(ConfigurationName)\CallDump.lib&quot; wininet.lib Imaging.lib note_prj.lib voicectl.lib"
 				OutputFile="$(OutDir)/pnote.exe"
 				LinkIncremental="2"
 				DelayLoadDLLs="$(NOINHERIT)"
@@ -251,7 +251,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions=" /subsystem:windowsce,5.01"
-				AdditionalDependencies="&quot;$(SolutionDir)HTMLayout\bin\windows mobile 5.0 pocket pc sdk (armv4i)\htmlayout.lib&quot; &quot;$(SolutionDir)Evernote API\$(PlatformName)\$(ConfigurationName)\Evernote API.lib&quot; &quot;$(SolutionDir)CallDump\$(PlatformName)\$(ConfigurationName)\CallDump.lib&quot; wininet.lib Imaging.lib note_prj.lib"
+				AdditionalDependencies="&quot;$(SolutionDir)HTMLayout\bin\windows mobile 5.0 pocket pc sdk (armv4i)\htmlayout.lib&quot; &quot;$(SolutionDir)Evernote API\$(PlatformName)\$(ConfigurationName)\Evernote API.lib&quot; &quot;$(SolutionDir)CallDump\$(PlatformName)\$(ConfigurationName)\CallDump.lib&quot; wininet.lib Imaging.lib note_prj.lib voicectl.lib"
 				OutputFile="$(OutDir)/pnote.exe"
 				LinkIncremental="1"
 				DelayLoadDLLs="$(NOINHERIT)"
@@ -343,7 +343,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions=" /subsystem:windowsce,5.02"
-				AdditionalDependencies="&quot;$(SolutionDir)HTMLayout\bin\windows mobile 5.0 pocket pc sdk (armv4i)\htmlayout.lib&quot; &quot;$(SolutionDir)Evernote API\$(PlatformName)\$(ConfigurationName)\Evernote API.lib&quot; wininet.lib Imaging.lib note_prj.lib"
+				AdditionalDependencies="&quot;$(SolutionDir)HTMLayout\bin\windows mobile 5.0 pocket pc sdk (armv4i)\htmlayout.lib&quot; &quot;$(SolutionDir)Evernote API\$(PlatformName)\$(ConfigurationName)\Evernote API.lib&quot; wininet.lib Imaging.lib note_prj.lib voicectl.lib"
 				OutputFile="$(OutDir)/pnote.exe"
 				LinkIncremental="1"
 				DelayLoadDLLs="$(NOINHERIT)"
@@ -428,6 +428,10 @@
 			</File>
 			<File
 				RelativePath=".\src\Animator.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\Audio.cpp"
 				>
 			</File>
 			<File
@@ -800,6 +804,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\VoiceEditorModel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\VoiceEditorPresenter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\VoiceEditorView.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\WindowRenderer.cpp"
 				>
 			</File>
@@ -823,6 +839,10 @@
 			</File>
 			<File
 				RelativePath=".\src\API Key.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\Audio.h"
 				>
 			</File>
 			<File
@@ -955,6 +975,10 @@
 			</File>
 			<File
 				RelativePath=".\src\IAnimator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\IAudio.h"
 				>
 			</File>
 			<File
@@ -1095,6 +1119,14 @@
 			</File>
 			<File
 				RelativePath=".\src\IUserStore.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\IVoiceEditorModel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\IVoiceEditorView.h"
 				>
 			</File>
 			<File
@@ -1294,6 +1326,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\VoiceEditorModel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\VoiceEditorPresenter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\VoiceEditorView.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\window.h"
 				>
 			</File>
@@ -1352,11 +1396,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\corner-light.png"
+				RelativePath=".\html-lr\corner-light.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\corner-light.png"
+				RelativePath=".\html\corner-light.png"
 				>
 			</File>
 			<File
@@ -1368,19 +1412,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\dropdown-arrow.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html-lr\dropdown-arrow.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\encrypt.png"
+				RelativePath=".\html\dropdown-arrow.png"
 				>
 			</File>
 			<File
 				RelativePath=".\html\encrypt.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\encrypt.png"
 				>
 			</File>
 			<File
@@ -1392,11 +1436,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\html\gradient-64.png"
+				>
+			</File>
+			<File
 				RelativePath=".\html-lr\gradient-64.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\gradient-64.png"
+				RelativePath=".\html\ink-note-pressed.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\ink-note-pressed.png"
 				>
 			</File>
 			<File
@@ -1421,6 +1473,14 @@
 			</File>
 			<File
 				RelativePath=".\html-lr\menu-check.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\photo-note-pressed.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\photo-note-pressed.png"
 				>
 			</File>
 			<File
@@ -1456,11 +1516,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\rt-em.png"
+				RelativePath=".\html\rt-em.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\rt-em.png"
+				RelativePath=".\html-lr\rt-em.png"
 				>
 			</File>
 			<File
@@ -1480,19 +1540,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\rt-indent-inc.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html-lr\rt-indent-inc.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\rt-li-ol.png"
+				RelativePath=".\html\rt-indent-inc.png"
 				>
 			</File>
 			<File
 				RelativePath=".\html-lr\rt-li-ol.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\rt-li-ol.png"
 				>
 			</File>
 			<File
@@ -1512,15 +1572,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\rt-redo.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html-lr\rt-redo.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\rt-strong.png"
+				RelativePath=".\html\rt-redo.png"
 				>
 			</File>
 			<File
@@ -1528,7 +1584,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\rt-u.png"
+				RelativePath=".\html-lr\rt-strong.png"
 				>
 			</File>
 			<File
@@ -1536,7 +1592,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\rt-undo.png"
+				RelativePath=".\html-lr\rt-u.png"
 				>
 			</File>
 			<File
@@ -1544,7 +1600,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\search.png"
+				RelativePath=".\html-lr\rt-undo.png"
 				>
 			</File>
 			<File
@@ -1552,11 +1608,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\status-gray.png"
+				RelativePath=".\html\search.png"
 				>
 			</File>
 			<File
 				RelativePath=".\html-lr\status-gray.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\status-gray.png"
 				>
 			</File>
 			<File
@@ -1576,7 +1636,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\text-note.png"
+				RelativePath=".\html-lr\text-note-pressed.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\text-note-pressed.png"
 				>
 			</File>
 			<File
@@ -1584,11 +1648,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\html\text-note.png"
+				>
+			</File>
+			<File
 				RelativePath=".\html\texture.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\voice-note.png"
+				RelativePath=".\html-lr\voice-note-pressed.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\voice-note-pressed.png"
 				>
 			</File>
 			<File
@@ -1596,11 +1668,55 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\zoom-in.png"
+				RelativePath=".\html-lr\voice-note.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\zoom-out.png"
+				RelativePath=".\html-lr\voice-play-pressed.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\voice-play-pressed.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\voice-play.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\voice-play.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\voice-record-pressed.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\voice-record-pressed.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\voice-record.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\voice-record.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\voice-stop-pressed.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\voice-stop-pressed.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\voice-stop.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\voice-stop.png"
 				>
 			</File>
 		</Filter>

@@ -44,7 +44,6 @@ void EnNoteTranslator::ConvertToHtml
 	print(back_inserter(html), *doc, print_no_indenting | print_no_char_expansion);
 	// apostropies and amperstands are escaped in XML, but not in HTML
 	Tools::ReplaceAll(html, L"&apos;", L"'");
-	Tools::ReplaceAll(html, L"&amp;",  L"&");
 }
 
 void EnNoteTranslator::ConvertToText
@@ -104,13 +103,14 @@ void EnNoteTranslator::ConvertToXml
 	, wstring & xml
 	)
 {
-	Tools::ReplaceAll(html, L"&", L"&amp;");
+	WrapInDiv(html);
 
 	typedef xml_document<wchar_t> XmlDocument;
 	auto_ptr<XmlDocument> doc(new XmlDocument());
 	doc->parse<parse_non_destructive>(&html[0]);
 
 	ProcessNode(doc.get(), doc.get(), htmlTransforms);
+	DeleteNode(doc.get(), doc.get(), doc->first_node());
 	SetRootToEnNote(doc.get());
 
 	xml =
@@ -144,6 +144,23 @@ bool EnNoteTranslator::AttributeNameSortPredicate
 	)
 {
 	return _wcsicmp(name1, name2) < 0;
+}
+
+void EnNoteTranslator::DeleteNode
+	( memory_pool<wchar_t> * store
+	, xml_node<wchar_t>    * parent
+	, xml_node<wchar_t>    * child
+	)
+{
+	xml_node<wchar_t> * grandchild(child->first_node());
+	while (grandchild)
+	{
+		xml_node<wchar_t> * sibling(grandchild->next_sibling());
+		child->remove_node(grandchild);
+		parent->insert_node(child, grandchild);
+		grandchild = sibling;
+	}
+	parent->remove_node(child);
 }
 
 void EnNoteTranslator::FilterAttributes
@@ -410,15 +427,7 @@ void EnNoteTranslator::ReplaceNote
 	, xml_node<wchar_t>    * child
 	)
 {
-	xml_node<wchar_t> * grandchild(child->first_node());
-	while (grandchild)
-	{
-		xml_node<wchar_t> * sibling(grandchild->next_sibling());
-		child->remove_node(grandchild);
-		parent->insert_node(child, grandchild);
-		grandchild = sibling;
-	}
-	parent->remove_node(child);
+	DeleteNode(store, parent, child);
 }
 
 void EnNoteTranslator::ReplaceTodo
@@ -454,4 +463,13 @@ void EnNoteTranslator::SetRootToEnNote(xml_document<wchar_t> * doc)
 		}
 		doc->append_node(root);
 	}
+}
+
+void EnNoteTranslator::WrapInDiv(wstring & str)
+{
+	const wchar_t * openDiv  (L"<div>");
+	const wchar_t * closeDiv (L"</div>");
+	str.reserve(str.size() + wcslen(openDiv) + wcslen(closeDiv));
+	str.insert(0, openDiv);
+	str.append(closeDiv);
 }

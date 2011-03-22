@@ -77,6 +77,7 @@ void NoteListView::RegisterEventHandlers()
 	ConnectBehavior("#new-ink",             BUTTON_CLICK,       &NoteListView::OnNewInk);
 	ConnectBehavior("#new-photo",           BUTTON_CLICK,       &NoteListView::OnNewPhoto);
 	ConnectBehavior("#new-text",            BUTTON_CLICK,       &NoteListView::OnNewText);
+	ConnectBehavior("#new-voice",           BUTTON_CLICK,       &NoteListView::OnNewVoice);
 	ConnectBehavior("#note-list",           BUTTON_CLICK,       &NoteListView::OnNote);
 	ConnectBehavior("#page-down",           BUTTON_CLICK,       &NoteListView::OnPageDown);
 	ConnectBehavior("#page-up",             BUTTON_CLICK,       &NoteListView::OnPageUp);
@@ -535,10 +536,14 @@ void NoteListView::OnMouseDown(Msg<WM_LBUTTONDOWN> & msg)
 
 	noteList.set_state(STATE_FOCUS);
 
+	const wchar_t * type(clickTarget.get_attribute("type"));
+	if (type && 0 == wcsicmp(type, L"button"))
+		return;
+
 	::SetCapture(hwnd_);
 
 	gestureProcessor.OnMouseDown(msg);
-
+	
 	msg.handled_ = true;
 }
 
@@ -659,6 +664,11 @@ void NoteListView::OnNewPhoto(BEHAVIOR_EVENT_PARAMS * params)
 void NoteListView::OnNewText(BEHAVIOR_EVENT_PARAMS * params)
 {
 	SignalNewNote();
+}
+
+void NoteListView::OnNewVoice(BEHAVIOR_EVENT_PARAMS * params)
+{
+	SignalNewVoiceNote();
 }
 
 void NoteListView::OnNote(BEHAVIOR_EVENT_PARAMS * params)
