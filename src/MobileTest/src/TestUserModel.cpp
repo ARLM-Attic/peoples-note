@@ -1,5 +1,5 @@
-#include "stdafx.h"
-/*
+﻿#include "stdafx.h"
+
 #include "DataStore.h"
 #include "MockFlashCard.h"
 #include "Note.h"
@@ -64,7 +64,7 @@ Note MakeNote(const wchar_t * name, int timestamp)
 {
 	Note note;
 	note.name = name;
-	note.creationDate = timestamp;
+	note.modificationDate = timestamp;
 	return note;
 }
 
@@ -79,19 +79,35 @@ Note MakeNote(const Guid & guid, const wchar_t * name = L"")
 Note MakeNote
 	( const Guid    & guid
 	, const wchar_t * name
-	, Timestamp       creationDate
+	, Timestamp       modificationDate
 	, int             usn
 	, bool            isDirty
 	)
 {
 	Note note;
-	note.guid         = guid;
-	note.name         = name;
-	note.creationDate = creationDate;
-	note.usn          = usn;
-	note.isDirty      = isDirty;
+	note.guid             = guid;
+	note.name             = name;
+	note.modificationDate = modificationDate;
+	note.usn              = usn;
+	note.isDirty          = isDirty;
 	return note;
 }
+
+#define TestNoteEquality(note1, note2)                                                        \
+        TEST_CHECK_EQUAL(note1.guid,                       note2.guid);                       \
+        TEST_CHECK_EQUAL(note1.usn,                        note2.usn);                        \
+        TEST_CHECK_EQUAL(note1.name,                       note2.name);                       \
+        TEST_CHECK_EQUAL(note1.isDirty,                    note2.isDirty);                    \
+        TEST_CHECK_EQUAL(note1.creationDate.GetTime(),     note2.creationDate.GetTime());     \
+        TEST_CHECK_EQUAL(note1.modificationDate.GetTime(), note2.modificationDate.GetTime()); \
+        TEST_CHECK_EQUAL(note1.subjectDate.GetTime(),      note2.subjectDate.GetTime());      \
+        TEST_CHECK_EQUAL(note1.Location.Altitude,          note2.Location.Altitude);          \
+        TEST_CHECK_EQUAL(note1.Location.Latitude,          note2.Location.Latitude);          \
+        TEST_CHECK_EQUAL(note1.Location.Longitude,         note2.Location.Longitude);         \
+        TEST_CHECK_EQUAL(note1.Author,                     note2.Author);                     \
+        TEST_CHECK_EQUAL(note1.Source,                     note2.Source);                     \
+        TEST_CHECK_EQUAL(note1.SourceUrl,                  note2.SourceUrl);                  \
+        TEST_CHECK_EQUAL(note1.SourceApplication,          note2.SourceApplication);          \
 
 //-----------
 // test suite
@@ -100,17 +116,29 @@ Note MakeNote
 FIXTURE_TEST_CASE(UserModelAddNote, DataStoreFixture)
 {
 	Note note0;
-	note0.name         = L"note-0";
-	note0.creationDate = Timestamp(2);
-	note0.isDirty      = true;
-	note0.usn          = 3;
+	note0.usn                = 3;
+	note0.isDirty            = true;
+	note0.name               = L"note-0";
+	note0.creationDate       = Timestamp(2);
+	note0.modificationDate   = Timestamp(3);
+	note0.subjectDate        = Timestamp(4);
+	note0.Location.IsValid   = true;
+	note0.Location.Altitude  = -0.5;
+	note0.Location.Latitude  = 0.5;
+	note0.Location.Longitude = 1.5;
+	note0.Author             = L"Motoko";
+	note0.Source             = L"Sea of information";
+	note0.SourceApplication  = L"Project 2501";
+	note0.SourceUrl          = L"http://peoplesnote.org";
 	wstring body0(L"<html>note body 0</html>");
 
 	Note note1;
-	note1.name         = L"note-1";
-	note1.creationDate = Timestamp(5);
-	note1.isDirty      = false;
-	note1.usn          = 7;
+	note1.usn              = 8;
+	note1.isDirty          = true;
+	note1.name             = L"note-1";
+	note1.creationDate     = Timestamp(5);
+	note1.modificationDate = Timestamp(6);
+	note1.subjectDate      = Timestamp(7);
 	wstring body1(L"<html>note body 1</html>");
 
 	Notebook notebook;
@@ -139,24 +167,23 @@ FIXTURE_TEST_CASE(UserModelAddNote, DataStoreFixture)
 	userModel.AddTagToNote(L"test-tag-1", note0);
 
 	{
-		Note result = userModel.GetNote(note0.guid);
-		TEST_CHECK_EQUAL(result.guid,                   note0.guid);
-		TEST_CHECK_EQUAL(result.creationDate.GetTime(), 2L);
-		TEST_CHECK_EQUAL(result.usn,                    3);
-		TEST_CHECK_EQUAL(result.name,                   L"note-0");
-		TEST_CHECK_EQUAL(result.isDirty,                true);
+		Note result;
+		userModel.GetNote(note0.guid, result);
+		TestNoteEquality(result, note0);
 
 		wstring loaded;
 		userModel.GetNoteBody(note0.guid, loaded);
 		TEST_CHECK_EQUAL(loaded, L"<html>note body 0</html>");
 	}
 	{
-		Note result = userModel.GetNote(note1.guid);
-		TEST_CHECK_EQUAL(result.guid,                   note1.guid);
-		TEST_CHECK_EQUAL(result.creationDate.GetTime(), 5L);
-		TEST_CHECK_EQUAL(result.usn,                    7);
-		TEST_CHECK_EQUAL(result.name,                   L"note-1");
-		TEST_CHECK_EQUAL(result.isDirty,                false);
+		Note result;
+		userModel.GetNote(note1.guid, result);
+		TEST_CHECK_EQUAL(result.usn,                        8);
+		TEST_CHECK_EQUAL(result.isDirty,                    true);
+		TEST_CHECK_EQUAL(result.name,                       L"note-1");
+		TEST_CHECK_EQUAL(result.creationDate.GetTime(),     5L);
+		TEST_CHECK_EQUAL(result.modificationDate.GetTime(), 6L);
+		TEST_CHECK_EQUAL(result.subjectDate.GetTime(),      7L);
 
 		wstring loaded;
 		userModel.GetNoteBody(note1.guid, loaded);
@@ -166,26 +193,28 @@ FIXTURE_TEST_CASE(UserModelAddNote, DataStoreFixture)
 		TagList tags;
 		userModel.GetTags(tags);
 		TEST_CHECK_EQUAL(tags.size(), 3);
-		TEST_CHECK_EQUAL(tags.at(0).guid,    tag0.guid);
-		TEST_CHECK_EQUAL(tags.at(0).name,    L"test-tag-0");
-		TEST_CHECK_EQUAL(tags.at(0).usn,     2);
-		TEST_CHECK_EQUAL(tags.at(0).isDirty, true);
-		TEST_CHECK_EQUAL(tags.at(1).guid,    tag1.guid);
-		TEST_CHECK_EQUAL(tags.at(1).name,    L"test-tag-1");
-		TEST_CHECK_EQUAL(tags.at(1).usn,     3);
-		TEST_CHECK_EQUAL(tags.at(1).isDirty, false);
-		TEST_CHECK_EQUAL(tags.at(2).guid,    tag2.guid);
+		TEST_CHECK_EQUAL(tags.at(0).guid,       tag0.guid);
+		TEST_CHECK_EQUAL(tags.at(0).name,       L"test-tag-0");
+		TEST_CHECK_EQUAL(tags.at(0).usn,        2);
+		TEST_CHECK_EQUAL(tags.at(0).isDirty,    true);
+		TEST_CHECK_EQUAL(tags.at(0).parentGuid, tag0.parentGuid);
+		TEST_CHECK_EQUAL(tags.at(1).guid,       tag1.guid);
+		TEST_CHECK_EQUAL(tags.at(1).name,       L"test-tag-1");
+		TEST_CHECK_EQUAL(tags.at(1).usn,        3);
+		TEST_CHECK_EQUAL(tags.at(1).isDirty,    false);
+		TEST_CHECK_EQUAL(tags.at(2).guid,       tag2.guid);
 	}
 	{
 		TagList tags;
 		userModel.GetNoteTags(note0, tags);
 		TEST_CHECK_EQUAL(tags.size(), 2);
-		TEST_CHECK_EQUAL(tags.at(0).guid,    tag1.guid);
-		TEST_CHECK_EQUAL(tags.at(0).name,    L"test-tag-1");
-		TEST_CHECK_EQUAL(tags.at(0).usn,     3);
-		TEST_CHECK_EQUAL(tags.at(0).isDirty, false);
-		TEST_CHECK_EQUAL(tags.at(1).guid,    tag2.guid);
-		TEST_CHECK_EQUAL(tags.at(1).name,    L"test-tag-2");
+		TEST_CHECK_EQUAL(tags.at(0).guid,       tag1.guid);
+		TEST_CHECK_EQUAL(tags.at(0).name,       L"test-tag-1");
+		TEST_CHECK_EQUAL(tags.at(0).usn,        3);
+		TEST_CHECK_EQUAL(tags.at(0).isDirty,    false);
+		TEST_CHECK_EQUAL(tags.at(0).parentGuid, tag1.parentGuid);
+		TEST_CHECK_EQUAL(tags.at(1).guid,       tag2.guid);
+		TEST_CHECK_EQUAL(tags.at(1).name,       L"test-tag-2");
 
 		tags.clear();
 		userModel.GetNoteTags(note1, tags);
@@ -197,6 +226,8 @@ FIXTURE_TEST_CASE(UserModelAddNotebook, DataStoreFixture)
 {
 	Notebook notebook;
 	notebook.name = L"test-notebook";
+	notebook.CreationDate     = Timestamp(1);
+	notebook.ModificationDate = Timestamp(2);
 	userModel.AddNotebook(notebook);
 
 	TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 2);
@@ -349,7 +380,7 @@ FIXTURE_TEST_CASE(UserModelNoteForeignKey, DataStoreFixture)
 			, fakeNotebook
 			)
 		, std::exception
-		, MESSAGE_EQUALS("foreign key constraint failed")
+		, MESSAGE_EQUALS("constraint failed")
 		);
 }
 
@@ -413,6 +444,10 @@ FIXTURE_TEST_CASE(UserModelReplacement, DataStoreFixture)
 	notebook1.guid = notebook0.guid;
 	notebook0.name = L"notebook-0";
 	notebook1.name = L"notebook-1";
+	notebook0.CreationDate     = Timestamp(1);
+	notebook1.CreationDate     = Timestamp(2);
+	notebook0.ModificationDate = Timestamp(3);
+	notebook1.ModificationDate = Timestamp(4);
 	note1.guid     = note0.guid;
 	note0.name     = L"note-0";
 	note1.name     = L"note-1";
@@ -438,6 +473,8 @@ FIXTURE_TEST_CASE(UserModelReplacement, DataStoreFixture)
 	userModel.GetNotebooks(notebooks);
 	TEST_CHECK_EQUAL(notebooks.size(), 2);
 	TEST_CHECK_EQUAL(notebooks.at(1).name, L"notebook-1");
+	TEST_CHECK_EQUAL(notebooks.at(1).CreationDate.GetTime(),     2L);
+	TEST_CHECK_EQUAL(notebooks.at(1).ModificationDate.GetTime(), 4L);
 
 	userModel.AddNote(note0, L"", L"", notebook1);
 	userModel.AddNote(note1, L"", L"", notebook1);
@@ -488,7 +525,7 @@ FIXTURE_TEST_CASE(UserModelResource0, DataStoreFixture)
 	TEST_CHECK_EXCEPTION
 		( userModel.AddResource(resource)
 		, std::exception
-		, MESSAGE_EQUALS("foreign key constraint failed")
+		, MESSAGE_EQUALS("constraint failed")
 		);
 }
 
@@ -643,7 +680,7 @@ AUTO_TEST_CASE(UserModelLoadOrCreate)
 
 		Credentials credentials;
 		userModel.GetCredentials(credentials);
-		TEST_CHECK_EQUAL(userModel.GetVersion(),       4);
+		TEST_CHECK_EQUAL(userModel.GetVersion(),       5);
 		TEST_CHECK_EQUAL(credentials.GetUsername(),    storeName);
 		TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 1);
 
@@ -664,7 +701,7 @@ AUTO_TEST_CASE(UserModelLoadOrCreate)
 
 		Credentials credentials;
 		userModel.GetCredentials(credentials);
-		TEST_CHECK_EQUAL(userModel.GetVersion(),       4);
+		TEST_CHECK_EQUAL(userModel.GetVersion(),       5);
 		TEST_CHECK_EQUAL(credentials.GetUsername(),    storeName);
 		TEST_CHECK_EQUAL(credentials.GetPassword(),    L"test-pwd");
 		TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 2);
@@ -730,7 +767,7 @@ FIXTURE_TEST_CASE(UserModelNotesByNotebook, DataStoreFixture)
 	TEST_CHECK_EQUAL(notes.at(1).name, L"note-2");
 }
 
-FIXTURE_TEST_CASE(UserModelNotesBySearch, DataStoreFixture)
+FIXTURE_TEST_CASE(UserModelGetNotesBySearch1, DataStoreFixture)
 {
 	Notebook notebook;
 	notebook.name = L"notebook";
@@ -751,16 +788,40 @@ FIXTURE_TEST_CASE(UserModelNotesBySearch, DataStoreFixture)
 		, notebook
 		);
 
-	NoteList notes0;
-	userModel.GetNotesBySearch(L"software", notes0);
-	TEST_CHECK_EQUAL(notes0.size(), 2);
-	TEST_CHECK_EQUAL(notes0.at(0).name, L"software use");
-	TEST_CHECK_EQUAL(notes0.at(1).name, L"useful software");
+	NoteList notes;
+	userModel.GetNotesBySearch(L"software", notes);
+	TEST_CHECK_EQUAL(notes.size(), 2);
+	TEST_CHECK_EQUAL(notes.at(0).name, L"software use");
+	TEST_CHECK_EQUAL(notes.at(1).name, L"useful software");
 
-	NoteList notes1;
-	userModel.GetNotesBySearch(L"use", notes1);
-	TEST_CHECK_EQUAL(notes1.size(), 1);
-	TEST_CHECK_EQUAL(notes1.at(0).name, L"software use");
+	notes.clear();
+	userModel.GetNotesBySearch(L"use", notes);
+	TEST_CHECK_EQUAL(notes.size(), 1);
+	TEST_CHECK_EQUAL(notes.at(0).name, L"software use");
+}
+
+FIXTURE_TEST_CASE(UserModelGetNotesBySearch2, DataStoreFixture)
+{
+	Notebook notebook;
+	notebook.name = L"notebook";
+	userModel.AddNotebook(notebook);
+
+	wstring empty;
+
+	userModel.AddNote
+		( MakeNote(L"Ангара", 0)
+		, empty
+		, L"Восточный"
+		, notebook
+		);
+
+	NoteList notes;
+	userModel.GetNotesBySearch(L"ангара", notes);
+	TEST_CHECK_EQUAL(notes.size(), 1);
+
+	notes.clear();
+	userModel.GetNotesBySearch(L"восточный", notes);
+	TEST_CHECK_EQUAL(notes.size(), 1);
 }
 
 FIXTURE_TEST_CASE(UserModelTags, DataStoreFixture)
@@ -816,6 +877,12 @@ FIXTURE_TEST_CASE(UserModelThumbnail, DataStoreFixture)
 	TEST_CHECK_EQUAL(out.Data.at(2), 5);
 	TEST_CHECK_EQUAL(out.Width,  7);
 	TEST_CHECK_EQUAL(out.Height, 11);
+
+	userModel.DeleteNoteThumbnail(guid);
+
+	out.Data.clear();
+	userModel.GetNoteThumbnail(guid, out);
+	TEST_CHECK(out.Data.empty());
 }
 
 FIXTURE_TEST_CASE(UserModelUnload, DataStoreFixture)
@@ -823,6 +890,66 @@ FIXTURE_TEST_CASE(UserModelUnload, DataStoreFixture)
 	TEST_CHECK_EQUAL(::DeleteFile(storeFile), FALSE);
 	userModel.Unload();
 	TEST_CHECK_EQUAL(::DeleteFile(storeFile), TRUE);
+}
+
+FIXTURE_TEST_CASE(UserModelUpdateNote, DataStoreFixture)
+{
+	Notebook notebook;
+	userModel.GetDefaultNotebook(notebook);
+
+	Guid guid1;
+	Note note;
+	note.guid               = guid1;
+	note.usn                = 1;
+	note.name               = L"note 1";
+	note.isDirty            = true;
+	note.creationDate       = Timestamp(1);
+	note.modificationDate   = Timestamp(2);
+	note.subjectDate        = Timestamp(3);
+	note.Location.IsValid   = true;
+	note.Location.Altitude  = 1;
+	note.Location.Latitude  = 2;
+	note.Location.Longitude = 3;
+	note.Author             = L"Motoko";
+	note.Source             = L"Sea of informaiton";
+	note.SourceApplication  = L"Project 2501";
+	note.SourceUrl          = L"http://www.peoplesnote.org";
+
+
+	userModel.AddNote(note, L"", L"", notebook);
+
+	NoteList notes;
+	userModel.GetNotesByNotebook(notebook, notes);
+	TEST_CHECK_EQUAL(notes.size(), 1);
+	TestNoteEquality(notes.at(0), note);
+
+	Guid guid2;
+	note.guid               = guid2;
+	note.usn                = 2;
+	note.name               = L"note 2";
+	note.isDirty            = false;
+	note.creationDate       = Timestamp(4);
+	note.modificationDate   = Timestamp(5);
+	note.subjectDate        = Timestamp(6);
+	note.Location.IsValid   = false;
+	note.Location.Altitude  = 7;
+	note.Location.Latitude  = 8;
+	note.Location.Longitude = 9;
+	note.Author             = L"Kusanagi";
+	note.Source             = L"Section 9";
+	note.SourceApplication  = L"Public Security";
+	note.SourceUrl          = L"http://peoplesnote.org";
+
+	userModel.UpdateNote(guid1, note);
+
+	note.Location.Altitude  = 0;
+	note.Location.Latitude  = 0;
+	note.Location.Longitude = 0;
+
+	notes.clear();
+	userModel.GetNotesByNotebook(notebook, notes);
+	TEST_CHECK_EQUAL(notes.size(), 1);
+	TestNoteEquality(notes.at(0), note);
 }
 
 FIXTURE_TEST_CASE(UserModelUpdateNotebook, DataStoreFixture)
@@ -840,7 +967,7 @@ FIXTURE_TEST_CASE(UserModelUpdateNotebook, DataStoreFixture)
 	replacementNotebook.name    = L"notebook-1";
 	replacementNotebook.usn     = 1;
 
-	userModel.UpdateNotebook(notebook, replacementNotebook);
+	userModel.UpdateNotebook(notebook.guid, replacementNotebook);
 
 	NotebookList notebooks;
 	userModel.GetNotebooks(notebooks);
@@ -882,7 +1009,7 @@ FIXTURE_TEST_CASE(UserModelUpdateTag, DataStoreFixture)
 	replacementTag.name    = L"tag-1";
 	replacementTag.usn     = 1;
 
-	userModel.UpdateTag(tag, replacementTag);
+	userModel.UpdateTag(tag.guid, replacementTag);
 
 	TagList tags;
 	userModel.GetTags(tags);
@@ -893,4 +1020,10 @@ FIXTURE_TEST_CASE(UserModelUpdateTag, DataStoreFixture)
 	TEST_CHECK_EQUAL(tags.at(0).name,    replacementTag.name);
 	TEST_CHECK_EQUAL(tags.at(0).usn,     replacementTag.usn);
 }
-*/
+
+FIXTURE_TEST_CASE(UserModelSyncVersion, DataStoreFixture)
+{
+	TEST_CHECK_EQUAL(userModel.GetSyncVersion(), 0);
+	userModel.SetSyncVersion(17);
+	TEST_CHECK_EQUAL(userModel.GetSyncVersion(), 17);
+}

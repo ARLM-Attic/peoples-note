@@ -44,9 +44,11 @@ private:
 public:
 
 	NoteView
-		( HINSTANCE   instance
-		, bool        highRes
-		, IAnimator & animator);
+		( HINSTANCE         instance
+		, bool              highRes
+		, IAnimator       & animator
+		, IHtmlDataLoader & htmlDataLoader
+		);
 
 	void Create(HWND parent);
 
@@ -79,6 +81,8 @@ public:
 		, const std::wstring & titleText
 		, const std::wstring & subtitleText
 		, const std::wstring & bodyHtml
+		, const std::wstring & attachment
+		, const bool           enableChrome
 		);
 
 	virtual void SetWindowTitle(const std::wstring & text);
@@ -91,13 +95,11 @@ private:
 
 	POINT GetScrollPos();
 
-	void HideScrollbar();
-
 	ATOM RegisterClass(const std::wstring & wndClass);
 
-	void SetScrollPos(POINT pos);
+	void SetChrome(bool enable);
 
-	void ShowScrollbar();
+	void SetScrollPos(POINT pos);
 
 	void UpdateScrollbar();
 

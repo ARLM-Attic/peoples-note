@@ -15,6 +15,7 @@
 #include "SyncLogic.h"
 #include "TagProcessor.h"
 #include "Tools.h"
+#include "UserUpdater.h"
 
 #include <Evernote\EDAM\Error.h>
 
@@ -33,7 +34,7 @@ SyncModel::SyncModel
 	, IEnService       & enService
 	, IMessagePump     & messagePump
 	, IUserModel       & userModel
-	, ILogger      & logger
+	, ILogger          & logger
 	)
 	: enNoteTranslator (enNoteTranslator)
 	, syncThread       (NULL)
@@ -41,7 +42,7 @@ SyncModel::SyncModel
 	, messagePump      (messagePump)
 	, userModel        (userModel)
 	, stopRequested    (false)
-	, logger       (logger)
+	, logger           (logger)
 {
 	::InitializeCriticalSection(&lock);
 }
@@ -270,30 +271,26 @@ void SyncModel::ProcessNotes
 			{
 			case SyncLogic::ActionAdd:
 				logger.PerformAction(L"Add", NULL, &action.Remote->guid);
-				processor.Add(*action.Remote);
+				processor.AddLocal(*action.Remote);
 				break;
 			case SyncLogic::ActionDelete:
 				logger.PerformAction(L"Delete", &action.Local->guid, NULL);
-				processor.Delete(*action.Local);
+				processor.DeleteLocal(*action.Local);
 				break;
 			case SyncLogic::ActionMerge:
 				logger.PerformAction(L"Merge", &action.Local->guid, &action.Remote->guid);
-				processor.Merge(*action.Local, *action.Remote);
-				break;
-			case SyncLogic::ActionRenameAdd:
-				logger.PerformAction(L"RenameAdd", &action.Local->guid, &action.Remote->guid);
-				processor.RenameAdd(*action.Local, *action.Remote);
+				processor.MergeLocal(*action.Local, *action.Remote);
 				break;
 			case SyncLogic::ActionUpload:
 				if (action.Local->guid.IsLocal())
 				{
 					logger.PerformAction(L"Create", &action.Local->guid, NULL);
-					processor.Create(*action.Local);
+					processor.CreateRemote(*action.Local);
 				}
 				else
 				{
 					logger.PerformAction(L"Update", &action.Local->guid, NULL);
-					processor.Update(*action.Local);
+					processor.UpdateRemote(*action.Local);
 				}
 				break;
 			}
@@ -337,30 +334,26 @@ void SyncModel::ProcessNotebooks
 		{
 		case SyncLogic::ActionAdd:
 			logger.PerformAction(L"Add", NULL, &action.Remote->guid);
-			processor.Add(*action.Remote);
+			processor.AddLocal(*action.Remote);
 			break;
 		case SyncLogic::ActionDelete:
 			logger.PerformAction(L"Delete", &action.Local->guid, NULL);
-			processor.Delete(*action.Local);
+			processor.DeleteLocal(*action.Local);
 			break;
 		case SyncLogic::ActionMerge:
 			logger.PerformAction(L"Merge", &action.Local->guid, &action.Remote->guid);
-			processor.Merge(*action.Local, *action.Remote);
-			break;
-		case SyncLogic::ActionRenameAdd:
-			logger.PerformAction(L"RenameAdd", &action.Local->guid, &action.Remote->guid);
-			processor.RenameAdd(*action.Local, *action.Remote);
+			processor.MergeLocal(*action.Local, *action.Remote);
 			break;
 		case SyncLogic::ActionUpload:
 			if (action.Local->guid.IsLocal())
 			{
 					logger.PerformAction(L"Create", &action.Local->guid, NULL);
-					processor.Create(*action.Local, noteStore);
+					processor.CreateRemote(*action.Local, noteStore);
 			}
 			else
 			{
 					logger.PerformAction(L"Update", &action.Local->guid, NULL);
-					processor.Update(*action.Local, noteStore);
+					processor.UpdateRemote(*action.Local, noteStore);
 			}
 			break;
 		}
@@ -398,30 +391,26 @@ void SyncModel::ProcessTags
 		{
 		case SyncLogic::ActionAdd:
 			logger.PerformAction(L"Add", NULL, &action.Remote->guid);
-			processor.Add(*action.Remote);
+			processor.AddLocal(*action.Remote);
 			break;
 		case SyncLogic::ActionDelete:
 			logger.PerformAction(L"Delete", &action.Local->guid, NULL);
-			processor.Delete(*action.Local);
+			processor.DeleteLocal(*action.Local);
 			break;
 		case SyncLogic::ActionMerge:
 			logger.PerformAction(L"Merge", &action.Local->guid, &action.Remote->guid);
-			processor.Merge(*action.Local, *action.Remote);
-			break;
-		case SyncLogic::ActionRenameAdd:
-			logger.PerformAction(L"RenameAdd", &action.Local->guid, &action.Remote->guid);
-			processor.RenameAdd(*action.Local, *action.Remote);
+			processor.MergeLocal(*action.Local, *action.Remote);
 			break;
 		case SyncLogic::ActionUpload:
 			if (action.Local->guid.IsLocal())
 			{
 				logger.PerformAction(L"Create", &action.Local->guid, NULL);
-				processor.Create(*action.Local, noteStore);
+				processor.CreateRemote(*action.Local, noteStore);
 			}
 			else
 			{
 				logger.PerformAction(L"Update", &action.Local->guid, NULL);
-				processor.Update(*action.Local, noteStore);
+				processor.UpdateRemote(*action.Local, noteStore);
 			}
 			break;
 		}
@@ -463,12 +452,19 @@ try
 			)
 		);
 
+	if (userModel.GetSyncVersion() < userModel.GetVersion())
+	{
+		UpdateModel(*noteStore);
+		userModel.SetSyncVersion(userModel.GetVersion());
+	}
+
 	SyncState syncState;
 	noteStore->GetSyncState(syncState);
 	bool fullSync(userModel.GetLastSyncEnTime() < syncState.FullSyncBefore);
 
 	logger.BeginSyncStage(fullSync ? L"full" : L"incremental");
 
+	PostProgressMessage(0.0);
 	PostTextMessage(fullSync ? L"Begin full sync..." : L"Begin incremental sync...");
 
 	EnInteropNoteList remoteNotes;
@@ -590,6 +586,53 @@ void SyncModel::UpdateDefaultNotebook(INoteStore & noteStore)
 	Guid defaultNotebook;
 	noteStore.GetDefaultNotebook(defaultNotebook);
 	userModel.MakeNotebookDefault(defaultNotebook);
+}
+
+void SyncModel::UpdateModel(INoteStore & noteStore)
+{
+	UserUpdater updater(noteStore, userModel);
+
+	logger.BeginSyncStage(L"update");
+
+	PostProgressMessage(0.0);
+	PostTextMessage(L"Updating notes...");
+	{
+		NotebookList notebooks;
+		userModel.GetNotebooks(notebooks);
+		foreach (const Notebook & notebook, notebooks)
+		{
+			try { updater.UpdateNotebook(notebook.guid); }
+			catch (const std::exception &) {}
+
+			NoteList notes;
+			userModel.GetNotesByNotebook(notebook, notes);
+			double progress(0.0);
+			foreach (const Note & note, notes)
+			{
+				try { updater.UpdateNote(note.guid); }
+				catch (const std::exception &) {}
+
+				progress += 1.0;
+				PostProgressMessage(progress / notes.size());
+			}
+		}
+	}
+
+	PostProgressMessage(0.0);
+	PostTextMessage(L"Updating tags...");
+	{
+		TagList tags;
+		userModel.GetTags(tags);
+		double progress(0.0);
+		foreach (const Tag & tag, tags)
+		{
+			try { updater.UpdateTag(tag.guid); }
+			catch (const std::exception &) {}
+
+			progress += 1.0;
+			PostProgressMessage(progress / tags.size());
+		}
+	}
 }
 
 //--------------------------

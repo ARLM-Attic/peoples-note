@@ -107,6 +107,8 @@ public:
 	__int64 lastSyncEnTime;
 	__int64 size;
 	int     updateCount;
+	int     syncVersion;
+	int     version;
 
 	std::map<std::string, int> notebookUpdateCounts;
 	
@@ -148,6 +150,8 @@ public:
 
 	virtual void DeleteNote(const Guid & note);
 
+	virtual void DeleteNoteThumbnail(const Guid & note);
+
 	virtual void EndTransaction();
 
 	virtual bool Exists(const std::wstring & username);
@@ -174,7 +178,7 @@ public:
 
 	virtual DbLocation GetLocation();
 
-	virtual Note GetNote(Guid guid);
+	virtual void GetNote(const Guid & guid, Note & note);
 
 	virtual void GetNoteBody
 		( const Guid   & guid
@@ -217,8 +221,6 @@ public:
 
 	virtual std::wstring GetPath();
 
-	virtual __int64 GetSize();
-
 	virtual void GetResource
 		( const std::string & hash
 		, Blob              & blob
@@ -229,9 +231,15 @@ public:
 		, Resource   & resource
 		);
 
+	virtual __int64 GetSize();
+
+	virtual int GetSyncVersion();
+
 	virtual void GetTags(TagList & tags);
 
 	virtual int GetUpdateCount();
+
+	virtual int GetVersion();
 
 	virtual void Load(const std::wstring & username);
 
@@ -271,15 +279,22 @@ public:
 
 	virtual void SetUpdateCount(int updateCount);
 
+	virtual void SetSyncVersion(int version);
+
 	virtual void Unload();
 
+	virtual void UpdateNote
+		( const Guid & note
+		, const Note & replacement
+		);
+
 	virtual void UpdateNotebook
-		( const Notebook & notebook
+		( const Guid     & notebook
 		, const Notebook & replacement
 		);
 
 	virtual void UpdateTag
-		( const Tag & tag
-		, const Tag & replacement
+		( const Guid & tag
+		, const Tag  & replacement
 		);
 };

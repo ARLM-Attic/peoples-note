@@ -78,6 +78,11 @@ void MockUserModel::DeleteNote(const Guid & note)
 	deletedNotes.push_back(note);
 }
 
+void MockUserModel::DeleteNoteThumbnail(const Guid & note)
+{
+	noteThumbnails.erase(note);
+}
+
 void MockUserModel::EndTransaction()
 {
 	isInTransaction = false;
@@ -156,13 +161,16 @@ DbLocation MockUserModel::GetLocation()
 	return location;
 }
 
-Note MockUserModel::GetNote(Guid guid)
+void MockUserModel::GetNote(const Guid & guid, Note & note)
 {
 	const string & guidString = static_cast<const string &>(guid);
-	foreach (Note & note, notes)
+	foreach (Note & n, notes)
 	{
-		if (guidString == static_cast<const string &>(note.guid))
-			return note;
+		if (guidString == static_cast<const string &>(n.guid))
+		{
+			note = n;
+			return;
+		}
 	}
 	throw std::exception("Note not found.");
 }
@@ -265,11 +273,6 @@ wstring MockUserModel::GetPath()
 	return path;
 }
 
-__int64 MockUserModel::GetSize()
-{
-	return size;
-}
-
 void MockUserModel::GetResource
 	( const string & hash
 	, Blob         & blob
@@ -291,6 +294,16 @@ void MockUserModel::GetResource(const Guid & guid, Resource & resource)
 	}
 }
 
+__int64 MockUserModel::GetSize()
+{
+	return size;
+}
+
+int MockUserModel::GetSyncVersion()
+{
+	return syncVersion;
+}
+
 void MockUserModel::GetTags(TagList & tags)
 {
 	copy(this->tags.begin(), this->tags.end(), back_inserter(tags));
@@ -299,6 +312,11 @@ void MockUserModel::GetTags(TagList & tags)
 int MockUserModel::GetUpdateCount()
 {
 	return updateCount;
+}
+
+int MockUserModel::GetVersion()
+{
+	return version;
 }
 
 void MockUserModel::Load(const wstring & username)
@@ -405,6 +423,11 @@ void MockUserModel::SetNotebookUpdateCount
 	notebookUpdateCounts[notebook] = updateCount;
 }
 
+void MockUserModel::SetSyncVersion(int version)
+{
+	syncVersion = version;
+}
+
 void MockUserModel::SetUpdateCount(int updateCount)
 {
 	this->updateCount = updateCount;
@@ -416,14 +439,28 @@ void MockUserModel::Unload()
 	loadedAs.clear();
 }
 
+void MockUserModel::UpdateNote
+	( const Guid & note
+	, const Note & replacement
+	)
+{
+	foreach (Note & n, notes)
+	{
+		if (n.guid != note)
+			continue;
+		n = replacement;
+		return;
+	}
+}
+
 void MockUserModel::UpdateNotebook
-	( const Notebook & notebook
+	( const Guid     & notebook
 	, const Notebook & replacement
 	)
 {
 	foreach (Notebook & n, notebooks)
 	{
-		if (n.guid != notebook.guid)
+		if (n.guid != notebook)
 			continue;
 		n = replacement;
 		return;
@@ -431,13 +468,13 @@ void MockUserModel::UpdateNotebook
 }
 
 void MockUserModel::UpdateTag
-	( const Tag & tag
-	, const Tag & replacement
+	( const Guid & tag
+	, const Tag  & replacement
 	)
 {
 	foreach (Tag & t, tags)
 	{
-		if (t.guid != tag.guid)
+		if (t.guid != tag)
 			continue;
 		t = replacement;
 		return;

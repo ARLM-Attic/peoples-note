@@ -16,12 +16,12 @@ TagProcessor::TagProcessor(IUserModel & userModel)
 {
 }
 
-void TagProcessor::Add(const Tag & remote)
+void TagProcessor::AddLocal(const Tag & remote)
 {
 	userModel.AddTag(remote);
 }
 
-void TagProcessor::Create
+void TagProcessor::CreateRemote
 		( const Tag & local
 		, INoteStore          & noteStore
 		)
@@ -34,51 +34,20 @@ void TagProcessor::Create
 	userModel.AddTag(replacement);
 }
 
-void TagProcessor::Delete(const Tag & local)
+void TagProcessor::DeleteLocal(const Tag & local)
 {
 	userModel.ExpungeTag(local.guid);
 }
 
-void TagProcessor::Merge
+void TagProcessor::MergeLocal
 		( const Tag & local
 		, const Tag & remote
 		)
 {
-	userModel.UpdateTag(local, remote);
+	userModel.UpdateTag(local.guid, remote);
 }
 
-void TagProcessor::RenameAdd
-		( const Tag & local
-		, const Tag & remote
-		)
-{
-	TagList tags;
-	userModel.GetTags(tags);
-
-	vector<wstring> names;
-	names.reserve(tags.size());
-	foreach (const Tag & tag, tags)
-		names.push_back(tag.name);
-	sort(names.begin(), names.end());
-
-	int n(2);
-	wstringstream name;
-	do
-	{
-		name.str(wstring());
-		name << local.name << L'(' << n << L')';
-		++n;
-	}
-	while (binary_search(names.begin(), names.end(), name.str()));
-
-	Tag tag(local);
-	tag.name    = name.str();
-	tag.isDirty = false;
-	userModel.UpdateTag(local, tag);
-	userModel.AddTag(remote);
-}
-
-void TagProcessor::Update
+void TagProcessor::UpdateRemote
 		( const Tag & local
 		, INoteStore          & noteStore
 		)
@@ -86,6 +55,6 @@ void TagProcessor::Update
 	Transaction transaction(userModel);
 
 	Tag replacement;
-	noteStore.UpdateTag(local, replacement);
-	userModel.UpdateTag(local, replacement);
+	noteStore.UpdateTag(local,      replacement);
+	userModel.UpdateTag(local.guid, replacement);
 }

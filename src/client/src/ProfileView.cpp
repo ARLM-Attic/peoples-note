@@ -15,9 +15,13 @@ using namespace Tools;
 // interface
 //----------
 
-ProfileView::ProfileView(HINSTANCE instance, bool highRes)
+ProfileView::ProfileView
+	( HINSTANCE         instance
+	, bool              highRes
+	, IHtmlDataLoader & htmlDataLoader
+	)
 	: instance        (instance)
-	, HTMLayoutWindow (L"profile.htm", highRes)
+	, HTMLayoutWindow (L"profile.htm", highRes, htmlDataLoader)
 {
 }
 
@@ -115,6 +119,15 @@ void ProfileView::Show()
 		);
 	if (!hwnd_)
 		throw std::exception("Window creation failed.");
+
+	SHMENUBARINFO menuBarInfo = { sizeof(menuBarInfo) };
+	menuBarInfo.hwndParent = hwnd_;
+	menuBarInfo.nToolBarId = IDR_OK_MENUBAR;
+	menuBarInfo.hInstRes   = instance;
+	::SHCreateMenuBar(&menuBarInfo);
+	menuBar = menuBarInfo.hwndMB;
+
+	ResizeWindow();
 }
 
 //------------------------
@@ -129,10 +142,10 @@ void ProfileView::OnActivate(Msg<WM_ACTIVATE> & msg)
 
 void ProfileView::OnCommand(Msg<WM_COMMAND> & msg)
 {
-	if (msg.CtrlId() == IDOK)
+	switch (msg.CtrlId())
 	{
-		SignalClose();
-		msg.handled_ = true;
+	case IDM_OK: SignalClose(); break;
+	case IDOK:   SignalClose(); break;
 	}
 }
 
@@ -192,4 +205,25 @@ ATOM ProfileView::RegisterClass(const wstring & wndClass)
 	wc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 	wc.lpszClassName = wndClass.c_str();
 	return ::RegisterClass(&wc);
+}
+
+void ProfileView::ResizeWindow()
+{
+	Rect desktopRect;
+	::SystemParametersInfo(SPI_GETWORKAREA, 0, &desktopRect, FALSE);
+
+	Rect menuBarRect;
+	::GetWindowRect(menuBar, &menuBarRect);
+
+	int windowWidth  (desktopRect.GetWidth());
+	int windowHeight (desktopRect.GetHeight() - menuBarRect.GetHeight());
+
+	::MoveWindow
+		( hwnd_              // hwnd
+		, desktopRect.GetX() // x
+		, desktopRect.GetY() // y
+		, windowWidth        // nWidth
+		, windowHeight       // nHeight
+		, TRUE			     // bRepaint
+		);
 }

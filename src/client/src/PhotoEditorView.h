@@ -13,6 +13,7 @@ class PhotoEditorView : public HTMLayoutWindow, public IPhotoEditorView
 private:
 
 	HWND           parent;
+	HWND           menuBar;
 	HINSTANCE      instance;
 	SHACTIVATEINFO activateInfo;
 
@@ -20,7 +21,11 @@ private:
 
 public:
 
-	PhotoEditorView(HINSTANCE instance, bool highRes);
+	PhotoEditorView
+		( HINSTANCE         instance
+		, bool              highRes
+		, IHtmlDataLoader & htmlDataLoader
+		);
 
 	void Create(HWND parent);
 

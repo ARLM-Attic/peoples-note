@@ -3,6 +3,7 @@
 
 #include "crackers.h"
 #include "resourceppc.h"
+#include "IHtmlDataLoader.h"
 #include "Tools.h"
 
 #include <sstream>
@@ -18,17 +19,18 @@ using namespace Tools;
 //----------
 
 NoteListView::NoteListView
-	( HINSTANCE   instance
-	, bool        highRes
-	, IAnimator & animator
-	, int         cmdShow
+	( HINSTANCE         instance
+	, bool              highRes
+	, IAnimator       & animator
+	, int               cmdShow
+	, IHtmlDataLoader & htmlDataLoader
 	)
 	: cmdShow           (cmdShow)
 	, instance          (instance)
 	, gestureProcessor  (animator)
 	, searchButtonState (SearchButtonSearch)
 	, sipState          (SHFS_HIDESIPBUTTON)
-	, HTMLayoutWindow   (L"main.htm", highRes)
+	, HTMLayoutWindow   (L"main.htm", highRes, htmlDataLoader)
 {
 	::ZeroMemory(&activateInfo, sizeof(activateInfo));
 	activateInfo.cbSize = sizeof(activateInfo);
@@ -326,7 +328,7 @@ void NoteListView::UncheckNotebookTitleOption()
 void NoteListView::UpdateNotes()
 {
 	noteList.update(MEASURE_DEEP|REDRAW_NOW);
-	SetNoteListScrollPos(0);
+	SetScrollPos(0);
 	UpdateScrollbar();
 }
 
@@ -334,19 +336,18 @@ void NoteListView::UpdateThumbnail(const Guid & note)
 {
 	wstring uri(L"thumb:");
 	uri.append(ConvertToUnicode(note));
-	SetHtmlUri(uri.c_str());
 
-	SignalLoadHtmlData();
-	if (UseHtmlData())
-	{
-		HTMLayoutDataReadyAsync
-			( hwnd_
-			, uri.c_str()
-			, GetHtmlData()
-			, GetHtmlDataSize()
-			, HLRT_DATA_IMAGE
-			);
-	}
+	Blob blob;
+	htmlDataLoader.LoadFromUri(uri.c_str(), blob);
+	if (blob.empty())
+		return;
+	HTMLayoutDataReadyAsync
+		( hwnd_
+		, uri.c_str()
+		, &blob[0]
+		, blob.size()
+		, HLRT_DATA_IMAGE
+		);
 }
 
 //------------------
@@ -362,7 +363,7 @@ element NoteListView::GetChild(element parent, element descendant)
 	return descendant;
 }
 
-int NoteListView::GetNoteListScrollPos()
+int NoteListView::GetScrollPos()
 {
 	POINT scrollPos;
 	RECT  viewRect;
@@ -405,8 +406,10 @@ ATOM NoteListView::RegisterClass(wstring wndClass)
 	return ::RegisterClass(&wc);
 }
 
-void NoteListView::SetNoteListScrollPos(int pos)
+void NoteListView::SetScrollPos(int pos)
 {
+	POINT point = { 0 };
+
 	POINT scrollPos;
 	RECT  viewRect;
 	SIZE  contentSize;
@@ -416,29 +419,49 @@ void NoteListView::SetNoteListScrollPos(int pos)
 	RECT listRect(noteList.get_location(SCROLLABLE_AREA));
 	int scrollableHeight(listRect.bottom - listRect.top);
 	if (scrollableHeight <= 0)
+	{
+		noteList.set_scroll_pos   (point, false);
+		listScroll.set_scroll_pos (point, false);
 		return;
+	}
 
 	int contentDistance(contentHeight - scrollableHeight);
 	if (contentDistance <= 0)
+	{
+		noteList.set_scroll_pos   (point, false);
+		listScroll.set_scroll_pos (point, false);
 		return;
+	}
 
 	RECT scrollRect(listScroll.get_location(ROOT_RELATIVE|CONTENT_BOX));
 	int scrollHeight(scrollRect.bottom - scrollRect.top);
 	if (scrollHeight <= 0)
+	{
+		noteList.set_scroll_pos   (point, false);
+		listScroll.set_scroll_pos (point, false);
 		return;
+	}
 
 	RECT sliderRect(listSlider.get_location(CONTAINER_RELATIVE|BORDER_BOX));
 	int sliderHeight(sliderRect.bottom - sliderRect.top);
 	if (sliderHeight <= 0)
+	{
+		noteList.set_scroll_pos   (point, false);
+		listScroll.set_scroll_pos (point, false);
 		return;
+	}
 
 	int scrollDistance(scrollHeight - sliderHeight);
 	if (scrollDistance <= 0)
+	{
+		noteList.set_scroll_pos   (point, false);
+		listScroll.set_scroll_pos (point, false);
 		return;
+	}
 
 	pos = min(max(pos, 0), contentDistance);
 
-	POINT point = { 0, pos };
+	point.y = pos;
 	noteList.set_scroll_pos(point, false);
 
 	point.y = -static_cast<int>(static_cast<__int64>(pos) * scrollDistance / contentDistance);
@@ -492,12 +515,12 @@ void NoteListView::OnDelayedMouseDown()
 
 void NoteListView::OnGestureStart()
 {
-	startScrollPos = GetNoteListScrollPos();
+	startScrollPos = GetScrollPos();
 }
 
 void NoteListView::OnGestureStep()
 {
-	SetNoteListScrollPos(startScrollPos + gestureProcessor.GetScrollDistance());
+	SetScrollPos(startScrollPos + gestureProcessor.GetScrollDistance());
 }
 
 //------------------------

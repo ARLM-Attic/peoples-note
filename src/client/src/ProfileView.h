@@ -12,14 +12,19 @@ class ProfileView : public HTMLayoutWindow, public IProfileView
 
 private:
 
-	HINSTANCE instance;
 	HWND      parent;
+	HWND      menuBar;
+	HINSTANCE instance;
 
 // interface
 
 public:
 
-	ProfileView(HINSTANCE instance, bool highRes);
+	ProfileView
+		( HINSTANCE         instance
+		, bool              highRes
+		, IHtmlDataLoader & htmlDataLoader
+		);
 
 	void Create(HWND parent);
 
@@ -70,4 +75,6 @@ private:
 private:
 
 	ATOM RegisterClass(const std::wstring & wndClass);
+
+	void ResizeWindow();
 };

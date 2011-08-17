@@ -16,12 +16,12 @@ NotebookProcessor::NotebookProcessor(IUserModel & userModel)
 {
 }
 
-void NotebookProcessor::Add(const Notebook & remote)
+void NotebookProcessor::AddLocal(const Notebook & remote)
 {
 	userModel.AddNotebook(remote);
 }
 
-void NotebookProcessor::Create
+void NotebookProcessor::CreateRemote
 	( const Notebook & local
 	, INoteStore     & noteStore
 	)
@@ -29,55 +29,24 @@ void NotebookProcessor::Create
 	Transaction transaction(userModel);
 
 	Notebook replacement;
-	noteStore.CreateNotebook(local, replacement);
-	userModel.UpdateNotebook(local, replacement);
+	noteStore.CreateNotebook(local,      replacement);
+	userModel.UpdateNotebook(local.guid, replacement);
 }
 
-void NotebookProcessor::Delete(const Notebook & local)
+void NotebookProcessor::DeleteLocal(const Notebook & local)
 {
 	userModel.ExpungeNotebook(local.guid);
 }
 
-void NotebookProcessor::Merge
+void NotebookProcessor::MergeLocal
 	( const Notebook & local
 	, const Notebook & remote
 	)
 {
-	userModel.UpdateNotebook(local, remote);
+	userModel.UpdateNotebook(local.guid, remote);
 }
 
-void NotebookProcessor::RenameAdd
-	( const Notebook & local
-	, const Notebook & remote
-	)
-{
-	NotebookList notebooks;
-	userModel.GetNotebooks(notebooks);
-
-	vector<wstring> names;
-	names.reserve(notebooks.size());
-	foreach (const Notebook & notebook, notebooks)
-		names.push_back(notebook.name);
-	sort(names.begin(), names.end());
-
-	int n(2);
-	wstringstream name;
-	do
-	{
-		name.str(wstring());
-		name << local.name << L'(' << n << L')';
-		++n;
-	}
-	while (binary_search(names.begin(), names.end(), name.str()));
-
-	Notebook notebook(local);
-	notebook.name    = name.str();
-	notebook.isDirty = false;
-	userModel.UpdateNotebook(local, notebook);
-	userModel.AddNotebook(remote);
-}
-
-void NotebookProcessor::Update
+void NotebookProcessor::UpdateRemote
 	( const Notebook & local
 	, INoteStore     & noteStore
 	)
@@ -85,6 +54,6 @@ void NotebookProcessor::Update
 	Transaction transaction(userModel);
 
 	Notebook replacement;
-	noteStore.UpdateNotebook(local, replacement);
-	userModel.UpdateNotebook(local, replacement);
+	noteStore.UpdateNotebook(local,      replacement);
+	userModel.UpdateNotebook(local.guid, replacement);
 }

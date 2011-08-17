@@ -189,7 +189,7 @@ t_cppw_generator::t_cppw_generator(
 }
 
 void t_cppw_generator::init_generator() {
-  parse_namespace(program_->get_namespace("cppw"), namespaces_);
+  parse_namespace(program_->get_namespace("csharp"), namespaces_);
 
   // build the directory tree
   namespace_dir_ = get_out_dir();
@@ -241,7 +241,7 @@ void t_cppw_generator::cppw_header_includes(ofstream& out_h) {
   IncludesList::const_iterator i;
   for (i = includes.begin(); i != includes.end(); ++i) {
     vector<string> ns;
-    parse_namespace((*i)->get_namespace("cppw"), ns);
+    parse_namespace((*i)->get_namespace("csharp"), ns);
     if (ns.empty())
       continue;
     out_h << "#include <" << ns.front();
@@ -1706,7 +1706,7 @@ string t_cppw_generator::type_name(t_type* ttype, bool in_typedef, bool arg) {
   t_program* program = ttype->get_program();
   if (program != NULL && program != program_) {
     vector<string> ns;
-    parse_namespace(program->get_namespace("cppw"), ns);
+    parse_namespace(program->get_namespace("csharp"), ns);
     pname =
       class_prefix +
       namespace_prefix(ns) +

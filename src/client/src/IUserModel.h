@@ -46,6 +46,8 @@ public:
 
 	virtual void DeleteNote(const Guid & note) = 0;
 
+	virtual void DeleteNoteThumbnail(const Guid & note) = 0;
+
 	virtual void EndTransaction() = 0;
 
 	virtual bool Exists(const std::wstring & username) = 0;
@@ -70,8 +72,7 @@ public:
 
 	virtual DbLocation GetLocation() = 0;
 
-	// TODO: changed Note to a reference parameter
-	virtual Note GetNote(Guid guid) = 0;
+	virtual void GetNote(const Guid & guid, Note & note) = 0;
 
 	virtual void GetNotebook
 		( const Guid & guid
@@ -114,8 +115,6 @@ public:
 
 	virtual std::wstring GetPath() = 0;
 
-	virtual __int64 GetSize() = 0;
-
 	virtual void GetResource
 		( const std::string & hash
 		, Blob              & blob
@@ -126,9 +125,15 @@ public:
 		, Resource   & resource
 		) = 0;
 
+	virtual __int64 GetSize() = 0;
+
+	virtual int GetSyncVersion() = 0;
+
 	virtual void GetTags(TagList & tags) = 0;
 
 	virtual int GetUpdateCount() = 0;
+
+	virtual int GetVersion() = 0;
 
 	virtual void Load(const std::wstring & username) = 0;
 
@@ -166,17 +171,24 @@ public:
 		, int          updateCount
 		) = 0;
 
+	virtual void SetSyncVersion(int version) = 0;
+
 	virtual void SetUpdateCount(int updateCount) = 0;
 
 	virtual void Unload() = 0;
 
+	virtual void UpdateNote
+		( const Guid & note
+		, const Note & replacement
+		) = 0;
+
 	virtual void UpdateNotebook
-		( const Notebook & notebook
+		( const Guid     & notebook
 		, const Notebook & replacement
 		) = 0;
 
 	virtual void UpdateTag
-		( const Tag & tag
-		, const Tag & replacement
+		( const Guid & tag
+		, const Tag  & replacement
 		) = 0;
 };

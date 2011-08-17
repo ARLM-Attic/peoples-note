@@ -54,29 +54,21 @@ void NotePresenter::OnCloseNote()
 	wstring bodyText;
 	enNoteTranslator.ConvertToText(bodyXml, bodyText);
 
-	Transaction transaction(userModel);
-
 	Note note;
 	noteView.GetNote(note);
+	note.modificationDate = Timestamp::GetCurrentTime();
 	note.isDirty = true;
 
-	Notebook notebook;
-	userModel.GetLastUsedNotebook(notebook);
-	userModel.AddNote(note, bodyXml, bodyText, notebook);
+	{
+		Transaction transaction(userModel);
 
-	noteView.SetNote(note, L"", L"", bodyHtml);
-	noteView.SetNote(note, L"", L"", bodyHtml);
+		Notebook notebook;
+		userModel.GetLastUsedNotebook(notebook);
+		userModel.AddNote(note, bodyXml, bodyText, notebook);
 
-	SIZE thumbnailSize;
-	noteListView.GetThumbSize(thumbnailSize);
-
-	Thumbnail thumbnail;
-	thumbnail.Width  = thumbnailSize.cx;
-	thumbnail.Height = thumbnailSize.cy;
-	noteView.Render(thumbnail);
-	userModel.SetNoteThumbnail(note.guid, thumbnail);
-
-	noteListView.UpdateThumbnail(note.guid);
+		userModel.DeleteNoteThumbnail(note.guid);
+		noteListView.UpdateThumbnail(note.guid);
+	}
 
 	noteListModel.Reload();
 }
@@ -89,7 +81,8 @@ void NotePresenter::OnOpenNote()
 
 	wstring body;
 	userModel.GetNoteBody(guid, body);
-	Note note(userModel.GetNote(guid));
+	Note note;
+	userModel.GetNote(guid, note);
 
 	wstring subtitle(L"created on ");
 	subtitle.append(note.creationDate.GetFormattedDateTime());
@@ -110,7 +103,11 @@ void NotePresenter::OnOpenNote()
 	wstring html;
 	enNoteTranslator.ConvertToHtml(body, html);
 
-	noteView.SetNote(note, note.name, subtitle, html);
+	//wstring attachment =
+	//	L"<div><img src='audio-attachment.png' />Placeholder 1 with a very long title that will never fit onto a single line</div>"
+	//	L"<div><img src='audio-attachment.png' />Placeholder 2</div>";
+
+	noteView.SetNote(note, note.name, subtitle, html, L"", true);
 	noteView.Show();
 }
 

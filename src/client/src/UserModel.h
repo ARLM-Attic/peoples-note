@@ -38,8 +38,6 @@ public:
 
 	int GetResourceCount();
 
-	int GetVersion();
-
 // IUserModel implementation
 
 public:
@@ -68,6 +66,8 @@ public:
 
 	virtual void DeleteNote(const Guid & note);
 
+	virtual void DeleteNoteThumbnail(const Guid & note);
+
 	virtual void EndTransaction();
 
 	virtual bool Exists(const std::wstring & username);
@@ -92,7 +92,7 @@ public:
 
 	virtual DbLocation GetLocation();
 
-	virtual Note GetNote(Guid guid);
+	virtual void GetNote(const Guid & guid, Note & note);
 
 	virtual void GetNoteBody
 		( const Guid   & guid
@@ -135,8 +135,6 @@ public:
 
 	virtual std::wstring GetPath();
 
-	virtual __int64 GetSize();
-
 	virtual void GetResource
 		( const std::string & hash
 		, Blob              & blob
@@ -147,9 +145,15 @@ public:
 		, Resource   & resource
 		);
 
+	virtual __int64 GetSize();
+
+	virtual int GetSyncVersion();
+
 	virtual void GetTags(TagList & tags);
 
 	virtual int GetUpdateCount();
+
+	virtual int GetVersion();
 
 	virtual void Load(const std::wstring & username);
 
@@ -187,18 +191,25 @@ public:
 		, const Thumbnail & thumbnail
 		);
 
+	virtual void SetSyncVersion(int version);
+
 	virtual void SetUpdateCount(int updateCount);
 
 	virtual void Unload();
 
+	virtual void UpdateNote
+		( const Guid & note
+		, const Note & replacement
+		);
+
 	virtual void UpdateNotebook
-		( const Notebook & notebook
+		( const Guid     & notebook
 		, const Notebook & replacement
 		);
 
 	virtual void UpdateTag
-		( const Tag & tag
-		, const Tag & replacement
+		( const Guid & tag
+		, const Tag  & replacement
 		);
 
 // utility functions
@@ -223,6 +234,8 @@ private:
 	void Initialize(std::wstring name);
 
 	void MigrateFrom3To4();
+
+	void MigrateFrom4To5();
 
 	void Move
 		( const std::wstring & oldPath
@@ -253,9 +266,8 @@ void UserModel::GetProperty(const std::wstring & key, T & value)
 		"  LIMIT 1"
 		);
 	statement->Bind(1, key);
-	if (statement->Execute())
-		throw std::exception("Property not found.");
-	statement->Get(0, value);
+	if (!statement->Execute())
+		statement->Get(0, value);
 }
 
 template <typename T>

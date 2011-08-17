@@ -26,18 +26,21 @@ SqlStatement::~SqlStatement()
 
 bool SqlStatement::Execute()
 {
-	int result = sqlite3_step(statement);
-	if (result == SQLITE_ERROR || result == SQLITE_MISUSE)
+	switch (sqlite3_step(statement))
+	{
+	case SQLITE_OK:   return true;
+	case SQLITE_DONE: return true;
+	case SQLITE_ROW:  return false;
+	default:
 		HandleError(sqlite3_errmsg(db));
-	return result == SQLITE_DONE;
+		return false;
+	}
 }
 
 void SqlStatement::Finalize()
 {
-	int result(sqlite3_finalize(statement));
-	statement = NULL;
-	if (result != SQLITE_OK)
-		HandleError(sqlite3_errmsg(db));
+	if (sqlite3_finalize(statement) != SQLITE_OK)
+		DEBUGMSG(true, (L"%s\n", sqlite3_errmsg(db)));
 }
 
 void SqlStatement::Bind(int index, __int32 n)
@@ -50,6 +53,13 @@ void SqlStatement::Bind(int index, __int32 n)
 void SqlStatement::Bind(int index, __int64 n)
 {
 	int result = sqlite3_bind_int64(statement, index, n);
+	if (result != SQLITE_OK)
+		HandleError(sqlite3_errmsg(db));
+}
+
+void SqlStatement::Bind(int index, double n)
+{
+	int result = sqlite3_bind_double(statement, index, n);
 	if (result != SQLITE_OK)
 		HandleError(sqlite3_errmsg(db));
 }
@@ -97,6 +107,13 @@ void SqlStatement::Bind(int index, const Blob & blob)
 		HandleError(sqlite3_errmsg(db));
 }
 
+void SqlStatement::BindNull(int index)
+{
+	int result = sqlite3_bind_null(statement, index);
+	if (result != SQLITE_OK)
+		HandleError(sqlite3_errmsg(db));
+}
+
 void SqlStatement::Get(int index, bool & n)
 {
 	n = (sqlite3_column_int(statement, index) != 0);
@@ -112,14 +129,35 @@ void SqlStatement::Get(int index, __int64 & n)
 	n = sqlite3_column_int64(statement, index);
 }
 
+void SqlStatement::Get(int index, double & n)
+{
+	n = sqlite3_column_double(statement, index);
+}
+
 void SqlStatement::Get(int index, string & text)
 {
-	text = reinterpret_cast<const char *>(sqlite3_column_text(statement, index));
+	const unsigned char * temp(sqlite3_column_text(statement, index));
+	if (temp)
+		text = reinterpret_cast<const char *>(temp);
 }
 
 void SqlStatement::Get(int index, wstring & text)
 {
 	ConvertToUnicode(sqlite3_column_text(statement, index), text);
+}
+
+void SqlStatement::Get(int index, Guid & guid)
+{
+	string temp;
+	Get(index, temp);
+	guid = temp;
+}
+
+void SqlStatement::Get(int index, Timestamp & time)
+{
+	__int64 temp;
+	Get(index, temp);
+	time = static_cast<time_t>(temp);
 }
 
 bool SqlStatement::IsNull(int index)
