@@ -780,6 +780,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\Timer.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Timestamp.cpp"
 				>
 			</File>
@@ -829,6 +833,10 @@
 			</File>
 			<File
 				RelativePath=".\src\WindowRenderer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\WinException.cpp"
 				>
 			</File>
 		</Filter>
@@ -1286,6 +1294,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\SqlStatementInfo.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\stdafx.h"
 				>
 			</File>
@@ -1319,6 +1331,10 @@
 			</File>
 			<File
 				RelativePath=".\src\Thumbnail.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\Timer.h"
 				>
 			</File>
 			<File
@@ -1375,6 +1391,10 @@
 			</File>
 			<File
 				RelativePath=".\src\WindowRenderer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\WinException.h"
 				>
 			</File>
 		</Filter>
