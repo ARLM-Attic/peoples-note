@@ -1,8 +1,6 @@
 #pragma once
 #include "IUserModel.h"
 
-#include "CredentialsModel.h"
-
 class IDataStore;
 class IFlashCard;
 
@@ -78,7 +76,9 @@ public:
 
 	virtual void ExpungeTag(const Guid & tag);
 
-	virtual void GetCredentials(Credentials & credentials);
+	virtual std::wstring GetPasswordHash();
+
+	virtual std::wstring GetUsername();
 
 	virtual void GetDefaultNotebook(Notebook & notebook);
 
@@ -236,6 +236,8 @@ private:
 	void MigrateFrom3To4();
 
 	void MigrateFrom4To5();
+
+	void MigrateFrom5To6();
 
 	void Move
 		( const std::wstring & oldPath

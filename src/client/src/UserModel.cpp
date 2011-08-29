@@ -6,6 +6,7 @@
 #include "ISqlBlob.h"
 #include "ISqlStatement.h"
 #include "Notebook.h"
+#include "Tools.h"
 #include "Transaction.h"
 #include "WinException.h"
 
@@ -17,6 +18,8 @@
 
 using namespace boost;
 using namespace std;
+
+const int dbVersion(6);
 
 //----------
 // interface
@@ -430,14 +433,18 @@ void UserModel::ExpungeTag(const Guid & tag)
 	statement->Execute();
 }
 
-void UserModel::GetCredentials(Credentials & credentials)
+wstring UserModel::GetPasswordHash()
 {
 	wstring password;
-	wstring username;
 	GetProperty(L"password", password);
+	return password;
+}
+
+wstring UserModel::GetUsername()
+{
+	wstring username;
 	GetProperty(L"username", username);
-	credentials.SetPassword(password);
-	credentials.SetUsername(username);
+	return username;
 }
 
 void UserModel::GetDefaultNotebook(Notebook & notebook)
@@ -1262,7 +1269,7 @@ void UserModel::GetFirstNotebook(Notebook & notebook)
 	statement->Get(4, notebook.ModificationDate);
 	statement->Get(5, notebook.isDirty);
 }
-#define BLOCK (BLOCK_TOP|BLOCK_BOTTOM)
+
 void UserModel::Initialize(wstring name)
 {
 	dataStore.MakeStatement
@@ -1271,7 +1278,8 @@ void UserModel::Initialize(wstring name)
 			", value NOT NULL"
 			")"
 		)->Execute();
-	SetProperty(L"version",      5);
+	SetProperty(L"version",      dbVersion);
+	SetProperty(L"syncVersion",  dbVersion);
 	SetProperty(L"username",     name);
 	SetProperty(L"password",     L"");
 	SetProperty(L"lastSyncTime", 0);
@@ -1441,6 +1449,15 @@ void UserModel::MigrateFrom4To5()
 	SetProperty(L"version", 5);
 }
 
+void UserModel::MigrateFrom5To6()
+{
+	wstring password;
+	GetProperty(L"password", password);
+	if (!password.empty())
+		SetProperty(L"password", Tools::HashPassword(password));
+	SetProperty(L"version", 6);
+}
+
 void UserModel::Move
 	( const wstring & oldPath
 	, const wstring & newPath
@@ -1479,7 +1496,8 @@ void UserModel::Update()
 	{
 	case 3: MigrateFrom3To4();
 	case 4: MigrateFrom4To5();
-	case 5: break;
+	case 5: MigrateFrom5To6();
+	case 6: break;
 	default:
 		throw std::exception("Incompatible database version.");
 	}

@@ -186,9 +186,7 @@ void NoteListPresenter::OnUserLoaded()
 
 	noteListModel.Reload();
 
-	Credentials credentials;
-	userModel.GetCredentials(credentials);
-	wstring username(credentials.GetUsername());
+	const wstring username(userModel.GetUsername());
 
 	if (username == L"[anonymous]")
 	{

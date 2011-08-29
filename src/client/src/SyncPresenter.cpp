@@ -3,32 +3,27 @@
 
 #include "INoteListView.h"
 #include "ISyncModel.h"
-#include "IUserModel.h"
-#include "NotebookMenuGenerator.h"
-#include "Tools.h"
-
-#include <cmath>
+#include "ILastUserModel.h"
 
 using namespace boost;
 using namespace std;
-using namespace Tools;
 
 SyncPresenter::SyncPresenter
 	( INoteListView  & noteListView
 	, ISyncModel     & syncModel
-	, IUserModel     & userModel
+	, ILastUserModel & lastUserModel
 	)
 	: noteListView  (noteListView)
 	, syncModel     (syncModel)
-	, userModel     (userModel)
+	, lastUserModel (lastUserModel)
 {
 	noteListView.ConnectSync(bind(&SyncPresenter::OnSync, this));
 }
 
 void SyncPresenter::OnSync()
 {
-	Credentials credentials;
-	userModel.GetCredentials(credentials);
-
-	syncModel.BeginSync(credentials.GetUsername());
+	syncModel.BeginSync
+		( lastUserModel.GetUsername()
+		, lastUserModel.GetPassword()
+		);
 }

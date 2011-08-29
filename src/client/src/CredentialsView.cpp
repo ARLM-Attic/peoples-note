@@ -61,6 +61,9 @@ wstring CredentialsView::GetUsername() const
 
 void CredentialsView::Open()
 {
+	if (NULL != hwnd_)
+		return;
+
 	wstring wndTitle = LoadStringResource(IDS_APP_TITLE);
 	wstring wndClass = LoadStringResource(IDC_CREDENTIALS_VIEW);
 
@@ -93,6 +96,16 @@ void CredentialsView::Open()
 	ShowWindow(hwnd_, SW_SHOW);
 }
 
+void CredentialsView::SetFocusToPassword()
+{
+	element(FindFirstElement("#password")).set_state(STATE_FOCUS);
+}
+
+void CredentialsView::SetFocusToUsername()
+{
+	element(FindFirstElement("#username")).set_state(STATE_FOCUS);
+}
+
 void CredentialsView::SetMessage(const std::wstring & message)
 {
 	element root = element::root_element(hwnd_);
@@ -104,8 +117,7 @@ void CredentialsView::SetMessage(const std::wstring & message)
 
 void CredentialsView::SetPassword(const std::wstring & password)
 {
-	element root = element::root_element(hwnd_);
-	element e = root.find_first("#password");
+	element e(FindFirstElement("#password"));
 	if (!e)
 		throw std::exception("#password not found.");
 	e.set_text(password.c_str());
@@ -113,8 +125,7 @@ void CredentialsView::SetPassword(const std::wstring & password)
 
 void CredentialsView::SetUsername(const std::wstring & username)
 {
-	element root = element::root_element(hwnd_);
-	element e = root.find_first("#username");
+	element e(FindFirstElement("#username"));
 	if (!e)
 		throw std::exception("#username not found.");
 	e.set_text(username.c_str());
