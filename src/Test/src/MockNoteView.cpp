@@ -13,21 +13,6 @@ MockNoteView::MockNoteView()
 {
 }
 
-void MockNoteView::ConnectClose(slot_type OnClose)
-{
-	SignalClose.connect(OnClose);
-}
-
-void MockNoteView::ConnectEdit(slot_type OnEdit)
-{
-	SignalEdit.connect(OnEdit);
-}
-
-void MockNoteView::ConnectToggleMaximize(slot_type OnToggleMaximize)
-{
-	SignalToggleMaximize.connect(OnToggleMaximize);
-}
-
 void MockNoteView::GetBody(wstring & html)
 {
 	html = body;
@@ -36,6 +21,23 @@ void MockNoteView::GetBody(wstring & html)
 void MockNoteView::GetNote(Note & note)
 {
 	note = this->note;
+}
+
+wstring MockNoteView::GetSavePath
+	( const wstring & title
+	, const wstring & fileName
+	, const wstring & directory
+	)
+{
+	savePathTitle     = title;
+	savePathFileName  = fileName;
+	savePathDirectory = directory;
+	return savePath;
+}
+
+Guid MockNoteView::GetSelecteAttachmentGuid()
+{
+	return selectedAttachment;
 }
 
 void MockNoteView::GetTitle(std::wstring & text)
@@ -75,19 +77,19 @@ void MockNoteView::RestoreWindow()
 }
 
 void MockNoteView::SetNote
-	( const Note    & note
-	, const wstring & titleText
-	, const wstring & subtitleText
-	, const wstring & bodyHtml
-	, const wstring & attachment
-	, const bool      enableChrome
+	( const Note                   & note
+	, const wstring                & titleText
+	, const wstring                & subtitleText
+	, const wstring                & bodyHtml
+	, const AttachmentViewInfoList & attachments
+	, const bool                     enableChrome
 	)
 {
 	this->note         = note;
 	this->body         = bodyHtml;
 	this->subtitle     = subtitleText;
 	this->title        = titleText;
-	this->attachment   = attachment;
+	this->attachments  = attachments;
 	this->enableChrome = enableChrome;
 }
 

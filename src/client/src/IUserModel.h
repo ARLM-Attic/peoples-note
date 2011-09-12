@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Attachment.h"
 #include "Blob.h"
 #include "DbLocation.h"
 #include "ISignalProvider.h"
@@ -73,6 +74,11 @@ public:
 
 	virtual void GetNote(const Guid & guid, Note & note) = 0;
 
+	virtual void GetNoteAttachments
+		( const Guid     & note
+		, AttachmentList & attachments
+		) = 0;
+
 	virtual void GetNotebook
 		( const Guid & guid
 		, Notebook   & notebook
@@ -124,6 +130,8 @@ public:
 		, Resource   & resource
 		) = 0;
 
+	virtual void GetResources(GuidList & resources) = 0;
+
 	virtual __int64 GetSize() = 0;
 
 	virtual int GetSyncVersion() = 0;
@@ -151,11 +159,16 @@ public:
 
 	virtual void MoveToDevice() = 0;
 
-	virtual void RemoveNoteTags(const Guid & note) = 0;
+	virtual void ReplaceNote
+		( const Note          & note
+		, const std::wstring  & body
+		, const std::wstring  & bodyText
+		, const Notebook      & notebook
+		) = 0;
 
 	virtual void SetCredentials
 		( const std::wstring & username
-		, const std::wstring & password
+		, const std::wstring & passwordHash
 		) = 0;
 
 	virtual void SetLastSyncEnTime(__int64 enTime) = 0;
@@ -184,6 +197,11 @@ public:
 	virtual void UpdateNotebook
 		( const Guid     & notebook
 		, const Notebook & replacement
+		) = 0;
+
+	virtual void UpdateResource
+		( const Guid     & resource
+		, const Resource & replacement
 		) = 0;
 
 	virtual void UpdateTag

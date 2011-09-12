@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "NotePresenter.h"
 
+#include "Attachment.h"
 #include "EnNoteTranslator.h"
 #include "Guid.h"
 #include "INoteListModel.h"
@@ -9,6 +10,8 @@
 #include "IUserModel.h"
 #include "Tools.h"
 #include "Transaction.h"
+
+#include <fstream>
 
 using namespace boost;
 using namespace std;
@@ -19,19 +22,22 @@ using namespace Tools;
 //----------
 
 NotePresenter::NotePresenter
-	( INoteListModel   & noteListModel
+	( const wstring    & deviceDocumentPath
+	, INoteListModel   & noteListModel
 	, INoteListView    & noteListView
 	, INoteView        & noteView
 	, IUserModel       & userModel
 	, EnNoteTranslator & enNoteTranslator
 	)
-	: noteListModel    (noteListModel)
-	, noteListView     (noteListView)
-	, noteView         (noteView)
-	, userModel        (userModel)
-	, enNoteTranslator (enNoteTranslator)
+	: deviceDocumentPath (deviceDocumentPath)
+	, noteListModel      (noteListModel)
+	, noteListView       (noteListView)
+	, noteView           (noteView)
+	, userModel          (userModel)
+	, enNoteTranslator   (enNoteTranslator)
 {
 	noteListView.ConnectOpenNote   (bind(&NotePresenter::OnOpenNote,       this));
+	noteView.ConnectAttachment     (bind(&NotePresenter::OnAttachment,     this));
 	noteView.ConnectClose          (bind(&NotePresenter::OnCloseNote,      this));
 	noteView.ConnectToggleMaximize (bind(&NotePresenter::OnToggleMaximize, this));
 }
@@ -39,6 +45,34 @@ NotePresenter::NotePresenter
 //---------------
 // event handlers
 //---------------
+
+void NotePresenter::OnAttachment()
+{
+	Guid guid(noteView.GetSelecteAttachmentGuid());
+	if (guid.IsEmpty())
+		return;
+
+	Resource resource;
+	userModel.GetResource(guid, resource);
+	if (resource.Data.empty())
+		return;
+
+	wstring path = noteView.GetSavePath
+		( L"Save attachment..."
+		, resource.FileName
+		, deviceDocumentPath
+		);
+	if (path.empty())
+		return;
+
+	ofstream file(path.c_str(), ios::binary);
+	if (!file)
+		return;
+	file.write
+		( reinterpret_cast<const char *>(&resource.Data[0])
+		, resource.Data.size()
+		);
+}
 
 void NotePresenter::OnCloseNote()
 {
@@ -79,35 +113,28 @@ void NotePresenter::OnOpenNote()
 
 	Guid guid(noteListView.GetSelectedNoteGuid());
 
-	wstring body;
-	userModel.GetNoteBody(guid, body);
 	Note note;
 	userModel.GetNote(guid, note);
 
-	wstring subtitle(L"created on ");
-	subtitle.append(note.creationDate.GetFormattedDateTime());
+	wstring subtitle;
+	CreateSubtitle(note, subtitle);
 
-	TagList tags;
-	userModel.GetNoteTags(note, tags);
-	if (!tags.empty())
-	{
-		subtitle.append(L"\ntags: ");
-		subtitle.append(tags[0].name);
-		for (int i = 1; i != tags.size(); ++i)
-		{
-			subtitle.append(L", ");
-			subtitle.append(tags[i].name);
-		}
-	}
-
+	wstring body;
 	wstring html;
+	userModel.GetNoteBody(guid, body);
 	enNoteTranslator.ConvertToHtml(body, html);
 
-	//wstring attachment =
-	//	L"<div><img src='audio-attachment.png' />Placeholder 1 with a very long title that will never fit onto a single line</div>"
-	//	L"<div><img src='audio-attachment.png' />Placeholder 2</div>";
+	AttachmentList         attachments;
+	AttachmentViewInfoList attachmentViews;
+	userModel.GetNoteAttachments(guid, attachments);
+	transform
+		( attachments.begin()
+		, attachments.end()
+		, back_inserter(attachmentViews)
+		, &NotePresenter::ConvertAttachment
+		);
 
-	noteView.SetNote(note, note.name, subtitle, html, L"", true);
+	noteView.SetNote(note, note.name, subtitle, html, attachmentViews, true);
 	noteView.Show();
 }
 
@@ -117,4 +144,87 @@ void NotePresenter::OnToggleMaximize()
 		noteView.RestoreWindow();
 	else
 		noteView.MaximizeWindow();
+}
+
+//------------------
+// utility functions
+//------------------
+
+void NotePresenter::CreateSubtitle(const Note & note, wstring & subtitle)
+{
+	subtitle = L"created on ";
+	subtitle.append(note.creationDate.GetFormattedDateTime());
+
+	TagList tags;
+	userModel.GetNoteTags(note, tags);
+	if (!tags.empty())
+	{
+		subtitle.append(L"\ntags: ");
+		subtitle.append(tags[0].name);
+		for (int i(1); i != tags.size(); ++i)
+		{
+			subtitle.append(L", ");
+			subtitle.append(tags[i].name);
+		}
+	}
+}
+
+const wchar_t * NotePresenter::GetAttachmentImageUrl(const Attachment & attachment)
+{
+	const wstring::size_type extLocation(attachment.FileName.rfind(L'.'));
+	if (extLocation == wstring::npos)
+	{
+		wstring mime;
+		mime.reserve(attachment.Mime.size());
+		transform
+			( attachment.Mime.begin()
+			, attachment.Mime.end()
+			, back_inserter(mime)
+			, tolower
+			);
+		if (mime == L"audio/mpeg")
+			return L"url(attachment-mp3.png)";
+		if (mime == L"application/pdf")
+			return L"url(attachment-pdf.png)";
+		if (StartsWith(mime, L"audio"))
+			return L"url(attachment-sound.png)";
+		if (StartsWith(mime, L"image"))
+			return L"url(attachment-image.png)";
+	}
+	else
+	{
+		wstring ext;
+		transform
+			( attachment.FileName.begin() + extLocation
+			, attachment.FileName.end()
+			, back_inserter(ext)
+			, tolower
+			);
+
+		if (ext == L".mp3")
+			return L"url(attachment-mp3.png)";
+
+		if (ext == L".pdf")
+			return L"url(attachment-pdf.png)";
+
+		const wchar_t * imageExts[]
+			= { L".gif", L".jpg", L".jpeg", L".png", L".bmp", L".tif", L".tiff", L".raw" };
+		for (int i(0); i != GetArraySize(imageExts); ++i)
+			if (ext == imageExts[i]) return L"url(attachment-image.png)";
+
+		const wchar_t * audioExts[]
+			= { L".wav", L".mpg", L".mpeg", L".amr", L".ogg", L".flac", L".ape" };
+		for (int i(0); i != GetArraySize(audioExts); ++i)
+			if (ext == audioExts[i]) return L"url(attachment-sound.png)";
+	}
+	return L"url(attachment-misc.png)";
+}
+
+AttachmentViewInfo NotePresenter::ConvertAttachment(const Attachment & attachment)
+{
+	return AttachmentViewInfo
+		( attachment.Guid
+		, GetAttachmentImageUrl(attachment)
+		, attachment.FileName
+		);
 }

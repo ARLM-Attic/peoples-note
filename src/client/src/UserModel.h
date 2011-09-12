@@ -34,6 +34,8 @@ public:
 
 	int GetNotebookCount();
 
+	int GetRecognitionEntryCount();
+
 	int GetResourceCount();
 
 // IUserModel implementation
@@ -94,14 +96,19 @@ public:
 
 	virtual void GetNote(const Guid & guid, Note & note);
 
+	virtual void GetNoteAttachments
+		( const Guid     & note
+		, AttachmentList & attachments
+		);
+
 	virtual void GetNoteBody
 		( const Guid   & guid
 		, std::wstring & body
 		);
 
 	virtual void GetNoteResources
-		( const Guid        & note
-		, std::vector<Guid> & resources
+		( const Guid & note
+		, GuidList   & resources
 		);
 
 	virtual void GetNoteTags
@@ -145,6 +152,8 @@ public:
 		, Resource   & resource
 		);
 
+	virtual void GetResources(GuidList & resources);
+
 	virtual __int64 GetSize();
 
 	virtual int GetSyncVersion();
@@ -172,7 +181,12 @@ public:
 
 	virtual void MoveToDevice();
 
-	virtual void RemoveNoteTags(const Guid & note);
+	virtual void ReplaceNote
+		( const Note          & note
+		, const std::wstring  & body
+		, const std::wstring  & bodyText
+		, const Notebook      & notebook
+		);
 
 	virtual void SetCredentials
 		( const std::wstring & username
@@ -207,6 +221,11 @@ public:
 		, const Notebook & replacement
 		);
 
+	virtual void UpdateResource
+		( const Guid     & resource
+		, const Resource & replacement
+		);
+
 	virtual void UpdateTag
 		( const Guid & tag
 		, const Tag  & replacement
@@ -238,6 +257,8 @@ private:
 	void MigrateFrom4To5();
 
 	void MigrateFrom5To6();
+
+	void MigrateFrom6To7();
 
 	void Move
 		( const std::wstring & oldPath

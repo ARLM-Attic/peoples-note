@@ -7,7 +7,9 @@
 #include "resourceppc.h"
 #include "Tools.h"
 
+#include <algorithm>
 #include <fstream>
+#include <iterator>
 
 using namespace boost;
 using namespace htmlayout;
@@ -116,6 +118,43 @@ void NoteView::GetNote(Note & note)
 	note = this->note;
 }
 
+wstring NoteView::GetSavePath
+	( const wstring & title
+	, const wstring & fileName
+	, const wstring & directory
+	)
+{
+	vector<wchar_t> fileNameChars(fileName.begin(), fileName.end());
+	fileNameChars.resize(MAX_PATH);
+	fileNameChars.back() = L'\0';
+
+	vector<wchar_t> titleChars(title.begin(), title.end());
+	titleChars.resize(MAX_PATH);
+	titleChars.back() = L'\0';
+
+	OPENFILENAME openFileName = { };
+	openFileName.lStructSize     = sizeof(openFileName);
+	openFileName.lpstrTitle      = &titleChars[0];
+	openFileName.nMaxFileTitle   = titleChars.size();
+	openFileName.lpstrFile       = &fileNameChars[0];
+	openFileName.nMaxFile        = fileNameChars.size();
+	openFileName.lpstrInitialDir = directory.c_str();
+	openFileName.hwndOwner       = hwnd_;
+
+	BOOL result(::GetSaveFileName(&openFileName));
+	if (0 == result || 6 == result)
+		return L"";
+	return &fileNameChars[0];
+}
+
+Guid NoteView::GetSelecteAttachmentGuid()
+{
+	const wchar_t * value(element(FindFirstElement("#attachments")).get_attribute("value"));
+	if (value)
+		return value;
+	return Guid::GetEmpty();
+}
+
 void NoteView::GetTitle(std::wstring & text)
 {
 	text = element(FindFirstElement("#title")).text();
@@ -166,12 +205,12 @@ void NoteView::RestoreWindow()
 }
 
 void NoteView::SetNote
-	( const Note    & note
-	, const wstring & titleText
-	, const wstring & subtitleText
-	, const wstring & bodyHtml
-	, const wstring & attachment
-	, const bool      enableChrome
+	( const Note                   & note
+	, const wstring                & titleText
+	, const wstring                & subtitleText
+	, const wstring                & bodyHtml
+	, const AttachmentViewInfoList & attachments
+	, const bool                     enableChrome
 	)
 {
 	isDirty = false;
@@ -206,10 +245,7 @@ void NoteView::SetNote
 	body.set_html(utf8, utf8Chars.size());
 	ConnectBehavior("#body input", BUTTON_STATE_CHANGED, &NoteView::OnInput);
 
-	vector<unsigned char> utf8AttachmentChars;
-	const unsigned char * utf8Attachment = Tools::ConvertToUtf8(attachment, utf8AttachmentChars);
-
-	element(FindFirstElement("#attachments")).set_html(utf8Attachment, utf8AttachmentChars.size());
+	SetAttachments(attachments);
 }
 
 void NoteView::SetWindowTitle(const std::wstring & text)
@@ -260,6 +296,28 @@ ATOM NoteView::RegisterClass(const wstring & wndClass)
 	wc.hbrBackground = (HBRUSH) GetStockObject(WHITE_BRUSH);
 	wc.lpszClassName = wndClass.c_str();
 	return ::RegisterClass(&wc);
+}
+
+void NoteView::SetAttachments(const AttachmentViewInfoList & attachments)
+{
+	DisconnectBehavior("#attachments > option");
+
+	element list(FindFirstElement("#attachments"));
+
+	vector<element> old;
+	list.find_all(old, ":root > option");
+	foreach (element & e, old)
+		e.destroy();
+
+	foreach (const AttachmentViewInfo & attachment, attachments)
+	{
+		element e(element::create("option"));
+		list.insert(e, list.children_count() - 1);
+		e.set_style_attribute("background-image", attachment.Icon.c_str());
+		e.set_attribute("value", ConvertToUnicode(attachment.Guid).c_str());
+		e.set_text(attachment.Text.c_str());
+		ConnectBehavior(e, BUTTON_CLICK, &NoteView::OnAttachment);
+	}
 }
 
 void NoteView::SetChrome(bool enable)
@@ -540,6 +598,14 @@ void NoteView::ProcessMessage(WndMsg &msg)
 //---------------------------
 // HTMLayout message handlers
 //---------------------------
+
+void NoteView::OnAttachment(BEHAVIOR_EVENT_PARAMS * params)
+{
+	const wchar_t * value(element(params->heTarget).get_attribute("value"));
+	if (value)
+		element(FindFirstElement("#attachments")).set_attribute("value", value);
+	SignalAttachment();
+}
 
 void NoteView::OnInput(BEHAVIOR_EVENT_PARAMS * params)
 {

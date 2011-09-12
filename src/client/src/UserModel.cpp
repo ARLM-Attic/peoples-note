@@ -19,7 +19,7 @@
 using namespace boost;
 using namespace std;
 
-const int dbVersion(6);
+const int dbVersion(7);
 
 //----------
 // interface
@@ -61,6 +61,18 @@ int UserModel::GetNotebookCount()
 	return count;
 }
 
+int UserModel::GetRecognitionEntryCount()
+{
+	IDataStore::Statement statement = dataStore.MakeStatement
+		( "SELECT COUNT(*)"
+		"  FROM Recognition"
+		);
+	statement->Execute();
+	int count(0);
+	statement->Get(0, count);
+	return count;
+}
+
 int UserModel::GetResourceCount()
 {
 	IDataStore::Statement statement = dataStore.MakeStatement
@@ -92,70 +104,7 @@ void UserModel::AddNote
 	existenceCheck->Bind(1, note.guid);
 	if (existenceCheck->Execute())
 	{
-		{
-			IDataStore::Statement insertNote = dataStore.MakeStatement
-				("INSERT INTO Notes(`guid`, `usn`, `title`, `isDirty`, `body`, `creationDate`,"
-				"                   `modificationDate`, `subjectDate`, `altitude`, `latitude`,"
-				"                   `longitude`, `author`, `source`, `sourceUrl`,"
-				"                   `sourceApplication`, `notebook`)"
-				"  VALUES (?, ?, ?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?)"
-				);
-			insertNote->Bind(1, note.guid);
-			insertNote->Bind(2, note.usn);
-			insertNote->Bind(3, note.name);
-			insertNote->Bind(4, note.isDirty);
-			insertNote->Bind(5, body);
-			insertNote->Bind(6, note.creationDate.GetTime());
-			insertNote->Bind(7, note.modificationDate.GetTime());
-			insertNote->Bind(8, note.subjectDate.GetTime());
-			if (note.Location.IsValid)
-			{
-				insertNote->Bind(9,  note.Location.Altitude);
-				insertNote->Bind(10, note.Location.Latitude);
-				insertNote->Bind(11, note.Location.Longitude);
-			}
-			else
-			{
-				insertNote->BindNull(9);
-				insertNote->BindNull(10);
-				insertNote->BindNull(11);
-			}
-			insertNote->Bind(12, note.Author);
-			insertNote->Bind(13, note.Source);
-			insertNote->Bind(14, note.SourceUrl);
-			insertNote->Bind(15, note.SourceApplication);
-			insertNote->Bind(16, notebook.guid);
-			insertNote->Execute();
-		}
-		{
-			__int64 rowid(dataStore.GetLastInsertRowid());
-
-			wstring ucName;
-			ucName.reserve(note.name.size());
-			transform
-				( note.name.begin()
-				, note.name.end()
-				, back_inserter(ucName)
-				, towupper
-				);
-			wstring ucBody;
-			ucBody.reserve(bodyText.size());
-			transform
-				( bodyText.begin()
-				, bodyText.end()
-				, back_inserter(ucBody)
-				, towupper
-				);
-
-			IDataStore::Statement insertText = dataStore.MakeStatement
-				( "INSERT INTO NoteText(rowid, title, body)"
-				"  VALUES (?, ?, ?)"
-				);
-			insertText->Bind(1, rowid);
-			insertText->Bind(2, ucName);
-			insertText->Bind(3, ucBody);
-			insertText->Execute();
-		}
+		ReplaceNote(note, body, bodyText, notebook);
 	}
 	else
 	{
@@ -255,14 +204,42 @@ void UserModel::AddRecognitionEntry(const RecognitionEntry & entry)
 void UserModel::AddResource(const Resource & resource)
 {
 	IDataStore::Statement statement = dataStore.MakeStatement
-		( "INSERT OR REPLACE INTO Resources(guid, hash, data, mime, note)"
-		"  VALUES (?, ?, ?, ?, ?)"
+		( "INSERT OR REPLACE INTO Resources(`guid`, `hash`, `data`, `mime`, `width`, `height`,"
+		"                                   `sourceUrl`, `timestamp`, `altitude`, `latitude`,"
+		"                                   `longitude`, `fileName`, `isAttachment`, `note`)"
+		"  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 		);
 	statement->Bind(1, resource.Guid);
 	statement->Bind(2, resource.Hash);
 	statement->Bind(3, resource.Data);
 	statement->Bind(4, resource.Mime);
-	statement->Bind(5, resource.Note);
+	if (resource.Dimensions.IsValid)
+	{
+		statement->Bind(5, resource.Dimensions.Width);
+		statement->Bind(6, resource.Dimensions.Height);
+	}
+	else
+	{
+		statement->BindNull(5);
+		statement->BindNull(6);
+	}
+	statement->Bind(7, resource.SourceUrl);
+	statement->Bind(8, resource.Timestamp.GetTime());
+	if (resource.Location.IsValid)
+	{
+		statement->Bind(9,  resource.Location.Altitude);
+		statement->Bind(10, resource.Location.Latitude);
+		statement->Bind(11, resource.Location.Longitude);
+	}
+	else
+	{
+		statement->BindNull(9);
+		statement->BindNull(10);
+		statement->BindNull(11);
+	}
+	statement->Bind(12, resource.FileName);
+	statement->Bind(13, resource.IsAttachment);
+	statement->Bind(14, resource.Note);
 	statement->Execute();
 }
 
@@ -356,12 +333,11 @@ bool UserModel::Exists(const wstring & username)
 	wstring path(CreatePathFromName(deviceFolder, username));
 	if (INVALID_FILE_ATTRIBUTES != ::GetFileAttributes(path.c_str()))
 		return true;
-	if (flashCard.GetPath(path))
-	{
-		path = CreatePathFromName(path, username);
-		return INVALID_FILE_ATTRIBUTES != ::GetFileAttributes(path.c_str());
-	}
-	return false;
+	path = flashCard.GetPath();
+	if (path.empty())
+		return false;
+	path = CreatePathFromName(path, username);
+	return INVALID_FILE_ATTRIBUTES != ::GetFileAttributes(path.c_str());
 }
 
 void UserModel::ExpungeNote(const Guid & note)
@@ -558,10 +534,30 @@ void UserModel::GetNote(const Guid & guid, Note & note)
 	statement->Get(10, note.Source);
 	statement->Get(11, note.SourceUrl);
 	statement->Get(12, note.SourceApplication);
-	note.Location.IsValid
-		=  note.Location.Altitude  != 0
-		|| note.Location.Latitude  != 0
-		|| note.Location.Longitude != 0;
+
+	note.Location.Validate();
+}
+
+void UserModel::GetNoteAttachments
+		( const Guid     & note
+		, AttachmentList & attachments
+		)
+{
+	IDataStore::Statement statement = dataStore.MakeStatement
+		( "SELECT guid, mime, fileName"
+		"  FROM Resources"
+		"  WHERE note = ? AND length(fileName) > 0"
+		"  ORDER BY fileName, timestamp"
+		);
+	statement->Bind(1, note);
+	while (!statement->Execute())
+	{
+		attachments.push_back(Attachment());
+		Attachment & attachment(attachments.back());
+		statement->Get(0, attachment.Guid);
+		statement->Get(1, attachment.Mime);
+		statement->Get(2, attachment.FileName);
+	}
 }
 
 void UserModel::GetNoteBody
@@ -582,8 +578,8 @@ void UserModel::GetNoteBody
 }
 
 void UserModel::GetNoteResources
-	( const Guid   & note
-	, vector<Guid> & resources
+	( const Guid & note
+	, GuidList   & resources
 	)
 {
 	IDataStore::Statement statement = dataStore.MakeStatement
@@ -738,10 +734,7 @@ void UserModel::GetNotesByNotebook
 		statement->Get(11, n.Source);
 		statement->Get(12, n.SourceUrl);
 		statement->Get(13, n.SourceApplication);
-		n.Location.IsValid
-			=  n.Location.Altitude  != 0
-			|| n.Location.Latitude  != 0
-			|| n.Location.Longitude != 0;
+		n.Location.Validate();
 	}
 }
 
@@ -800,10 +793,7 @@ void UserModel::GetNotesBySearch
 		statement->Get(11, n.Source);
 		statement->Get(12, n.SourceUrl);
 		statement->Get(13, n.SourceApplication);
-		n.Location.IsValid
-			=  n.Location.Altitude  != 0
-			|| n.Location.Latitude  != 0
-			|| n.Location.Longitude != 0;
+		n.Location.Validate();
 	}
 }
 
@@ -843,7 +833,8 @@ void UserModel::GetResource
 	)
 {
 	IDataStore::Statement statement = dataStore.MakeStatement
-		( "SELECT rowid, hash, note"
+		( "SELECT `rowid`, `hash`, `mime`, `width`, `height`, `sourceUrl`, `timestamp`,"
+		"         `altitude`, `latitude`, `longitude`, `fileName`, `isAttachment`, `note`"
 		"  FROM   Resources"
 		"  WHERE  guid = ?"
 		);
@@ -851,14 +842,25 @@ void UserModel::GetResource
 	if (statement->Execute())
 		throw std::exception("Resource not found.");
 
-	__int64 row(0);
-	wstring noteGuid;
-	statement->Get(0, row);
-	statement->Get(1, resource.Hash);
-	statement->Get(2, noteGuid);
-
-	resource.Note = noteGuid;
 	resource.Guid = guid;
+
+	__int64 row(0);
+	statement->Get(0,  row);
+	statement->Get(1,  resource.Hash);
+	statement->Get(2,  resource.Mime);
+	statement->Get(3,  resource.Dimensions.Width);
+	statement->Get(4,  resource.Dimensions.Height);
+	statement->Get(5,  resource.SourceUrl);
+	statement->Get(6,  resource.Timestamp);
+	statement->Get(7,  resource.Location.Altitude);
+	statement->Get(8,  resource.Location.Latitude);
+	statement->Get(9,  resource.Location.Longitude);
+	statement->Get(10, resource.FileName);
+	statement->Get(11, resource.IsAttachment);
+	statement->Get(12, resource.Note);
+
+	resource.Dimensions.Validate();
+	resource.Location.Validate();
 
 	IDataStore::Blob sqlBlob = dataStore.MakeBlob
 		( "Resources"
@@ -866,6 +868,20 @@ void UserModel::GetResource
 		, row
 		);
 	sqlBlob->Read(resource.Data);
+}
+
+void UserModel::GetResources(GuidList & resources)
+{
+	IDataStore::Statement statement = dataStore.MakeStatement
+		( "SELECT guid"
+		"  FROM Resources"
+		);
+	while (!statement->Execute())
+	{
+		string guid;
+		statement->Get(0, guid);
+		resources.push_back(guid);
+	}
 }
 
 __int64 UserModel::GetSize()
@@ -936,17 +952,12 @@ void UserModel::Load(const wstring & username)
 	wstring path(CreatePathFromName(deviceFolder.c_str(), username));
 	if (!TryLoad(path, DbLocationDevice))
 	{
-		wstring cardFolder;
-		if (flashCard.GetPath(cardFolder))
-		{
-			path = CreatePathFromName(cardFolder.c_str(), username);
-			if (!TryLoad(path, DbLocationCard))
-				throw std::exception("Database could not be loaded.");
-		}
-		else
-		{
+		wstring cardFolder(flashCard.GetPath());
+		if (cardFolder.empty())
 			throw std::exception("Database could not be loaded.");
-		}
+		path = CreatePathFromName(cardFolder.c_str(), username);
+		if (!TryLoad(path, DbLocationCard))
+			throw std::exception("Database could not be loaded.");
 	}
 	Update();
 	SignalLoaded();
@@ -962,17 +973,12 @@ void UserModel::LoadAs
 	DbLocation location (DbLocationDevice);
 	if (INVALID_FILE_ATTRIBUTES == ::GetFileAttributes(oldPath.c_str()))
 	{
-		wstring cardFolder;
-		if (flashCard.GetPath(cardFolder))
-		{
-			oldPath  = CreatePathFromName(cardFolder, oldUsername);
-			newPath  = CreatePathFromName(cardFolder, newUsername);
-			location = DbLocationCard;
-		}
-		else
-		{
+		wstring cardFolder(flashCard.GetPath());
+		if (cardFolder.empty())
 			throw std::exception("Database could not be found.");
-		}
+		oldPath  = CreatePathFromName(cardFolder, oldUsername);
+		newPath  = CreatePathFromName(cardFolder, newUsername);
+		location = DbLocationCard;
 	}
 	if (!::MoveFile(oldPath.c_str(), newPath.c_str()))
 		throw std::exception("Database could not be renamed.");
@@ -989,8 +995,8 @@ void UserModel::LoadOrCreate(const wstring & username)
 	DbLocation location (DbLocationDevice);
 	if (INVALID_FILE_ATTRIBUTES == ::GetFileAttributes(path.c_str()))
 	{
-		wstring cardFolder;
-		if (flashCard.GetPath(cardFolder))
+		wstring cardFolder(flashCard.GetPath());
+		if (!cardFolder.empty())
 		{
 			path     = CreatePathFromName(cardFolder, username);
 			location = DbLocationCard;
@@ -1045,12 +1051,11 @@ void UserModel::MakeNotebookLastUsed(const Guid & notebook)
 
 void UserModel::MoveToCard()
 {
-	wstring cardFolder;
-	if (!flashCard.GetPath(cardFolder))
+	wstring cardFolder(flashCard.GetPath());
+	if (cardFolder.empty())
 		throw std::exception("No storage card available.");
 
-	wstring username;
-	GetProperty(L"username", username);
+	wstring username(GetUsername());
 	::CreateDirectory(cardFolder.c_str(), NULL);
 	Move
 		( CreatePathFromName(deviceFolder, username)
@@ -1061,12 +1066,11 @@ void UserModel::MoveToCard()
 
 void UserModel::MoveToDevice()
 {
-	wstring cardFolder;
-	if (!flashCard.GetPath(cardFolder))
+	wstring cardFolder(flashCard.GetPath());
+	if (cardFolder.empty())
 		throw std::exception("No storage card available.");
 
-	wstring username;
-	GetProperty(L"username", username);
+	wstring username(GetUsername());
 	::CreateDirectory(deviceFolder.c_str(), NULL);
 	Move
 		( CreatePathFromName(cardFolder,   username)
@@ -1075,13 +1079,78 @@ void UserModel::MoveToDevice()
 		);
 }
 
-void UserModel::RemoveNoteTags(const Guid & note)
+void UserModel::ReplaceNote
+	( const Note          & note
+	, const std::wstring  & body
+	, const std::wstring  & bodyText
+	, const Notebook      & notebook
+	)
 {
-	IDataStore::Statement statement = dataStore.MakeStatement
-		( "DELETE FROM NoteTags WHERE note = ?"
-		);
-	statement->Bind(1, note);
-	statement->Execute();
+	Transaction transaction(*this);
+	{
+		IDataStore::Statement insertNote = dataStore.MakeStatement
+			("INSERT OR REPLACE INTO Notes(`guid`, `usn`, `title`, `isDirty`, `body`,"
+			"                              `creationDate`, `modificationDate`, `subjectDate`,"
+			"                              `altitude`, `latitude`, `longitude`, `author`,"
+			"                              `source`, `sourceUrl`, `sourceApplication`, `notebook`)"
+			"  VALUES (?, ?, ?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?,  ?, ?, ?, ?)"
+			);
+		insertNote->Bind(1, note.guid);
+		insertNote->Bind(2, note.usn);
+		insertNote->Bind(3, note.name);
+		insertNote->Bind(4, note.isDirty);
+		insertNote->Bind(5, body);
+		insertNote->Bind(6, note.creationDate.GetTime());
+		insertNote->Bind(7, note.modificationDate.GetTime());
+		insertNote->Bind(8, note.subjectDate.GetTime());
+		if (note.Location.IsValid)
+		{
+			insertNote->Bind(9,  note.Location.Altitude);
+			insertNote->Bind(10, note.Location.Latitude);
+			insertNote->Bind(11, note.Location.Longitude);
+		}
+		else
+		{
+			insertNote->BindNull(9);
+			insertNote->BindNull(10);
+			insertNote->BindNull(11);
+		}
+		insertNote->Bind(12, note.Author);
+		insertNote->Bind(13, note.Source);
+		insertNote->Bind(14, note.SourceUrl);
+		insertNote->Bind(15, note.SourceApplication);
+		insertNote->Bind(16, notebook.guid);
+		insertNote->Execute();
+	}
+	{
+		__int64 rowid(dataStore.GetLastInsertRowid());
+
+		wstring ucName;
+		ucName.reserve(note.name.size());
+		transform
+			( note.name.begin()
+			, note.name.end()
+			, back_inserter(ucName)
+			, towupper
+			);
+		wstring ucBody;
+		ucBody.reserve(bodyText.size());
+		transform
+			( bodyText.begin()
+			, bodyText.end()
+			, back_inserter(ucBody)
+			, towupper
+			);
+
+		IDataStore::Statement insertText = dataStore.MakeStatement
+			( "INSERT INTO NoteText(rowid, title, body)"
+			"  VALUES (?, ?, ?)"
+			);
+		insertText->Bind(1, rowid);
+		insertText->Bind(2, ucName);
+		insertText->Bind(3, ucBody);
+		insertText->Execute();
+	}
 }
 
 void UserModel::SetCredentials
@@ -1200,6 +1269,50 @@ void UserModel::UpdateNotebook
 	statement->Bind(6, replacement.isDirty);
 	statement->Bind(7, notebook);
 	statement->Execute();
+}
+
+void UserModel::UpdateResource
+		( const Guid     & resource
+		, const Resource & replacement
+		)
+{
+	IDataStore::Statement statement = dataStore.MakeStatement
+		( "UPDATE Resources"
+		"  SET hash = ?, data = ?, mime = ?, width = ?, height = ?,"
+		"      sourceUrl = ?, timestamp = ?, altitude = ?, latitude = ?,"
+		"      longitude = ?, fileName = ?, isAttachment = ?"
+		"  WHERE guid = ?"
+		);
+	statement->Bind(1, replacement.Hash);
+	statement->Bind(2, replacement.Data);
+	statement->Bind(3, replacement.Mime);
+	if (replacement.Dimensions.IsValid)
+	{
+		statement->Bind(4, replacement.Dimensions.Width);
+		statement->Bind(5, replacement.Dimensions.Height);
+	}
+	else
+	{
+		statement->BindNull(4);
+		statement->BindNull(5);
+	}
+	statement->Bind(6, replacement.SourceUrl);
+	statement->Bind(7, replacement.Timestamp.GetTime());
+	if (replacement.Location.IsValid)
+	{
+		statement->Bind(8,  replacement.Location.Altitude);
+		statement->Bind(9, replacement.Location.Latitude);
+		statement->Bind(10, replacement.Location.Longitude);
+	}
+	else
+	{
+		statement->BindNull(8);
+		statement->BindNull(9);
+		statement->BindNull(10);
+	}
+	statement->Bind(11, replacement.FileName);
+	statement->Bind(12, replacement.IsAttachment);
+	statement->Bind(13, resource);
 }
 
 void UserModel::UpdateTag
@@ -1354,6 +1467,15 @@ void UserModel::Initialize(wstring name)
 			", hash UNIQUE"
 			", data"
 			", mime"
+			", width"
+			", height"
+			", sourceUrl"
+			", timestamp"
+			", altitude"
+			", latitude"
+			", longitude"
+			", fileName"
+			", isAttachment"
 			", note REFERENCES Notes(guid) ON DELETE CASCADE ON UPDATE CASCADE"
 			")"
 		)->Execute();
@@ -1458,6 +1580,20 @@ void UserModel::MigrateFrom5To6()
 	SetProperty(L"version", 6);
 }
 
+void UserModel::MigrateFrom6To7()
+{
+	dataStore.MakeStatement("ALTER TABLE Resources ADD COLUMN `width`")->Execute();
+	dataStore.MakeStatement("ALTER TABLE Resources ADD COLUMN `height`")->Execute();
+	dataStore.MakeStatement("ALTER TABLE Resources ADD COLUMN `sourceUrl`")->Execute();
+	dataStore.MakeStatement("ALTER TABLE Resources ADD COLUMN `timestamp`")->Execute();
+	dataStore.MakeStatement("ALTER TABLE Resources ADD COLUMN `altitude`")->Execute();
+	dataStore.MakeStatement("ALTER TABLE Resources ADD COLUMN `latitude`")->Execute();
+	dataStore.MakeStatement("ALTER TABLE Resources ADD COLUMN `longitude`")->Execute();
+	dataStore.MakeStatement("ALTER TABLE Resources ADD COLUMN `fileName`")->Execute();
+	dataStore.MakeStatement("ALTER TABLE Resources ADD COLUMN `isAttachment`")->Execute();
+	SetProperty(L"version", 7);
+}
+
 void UserModel::Move
 	( const wstring & oldPath
 	, const wstring & newPath
@@ -1497,7 +1633,8 @@ void UserModel::Update()
 	case 3: MigrateFrom3To4();
 	case 4: MigrateFrom4To5();
 	case 5: MigrateFrom5To6();
-	case 6: break;
+	case 6: MigrateFrom6To7();
+	case 7: break;
 	default:
 		throw std::exception("Incompatible database version.");
 	}

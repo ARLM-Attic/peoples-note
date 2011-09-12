@@ -1,6 +1,6 @@
 #pragma once
-
 #include "IUserModel.h"
+
 #include "MockCredentialsModel.h"
 #include "Note.h"
 #include "Notebook.h"
@@ -179,6 +179,11 @@ public:
 
 	virtual void GetNote(const Guid & guid, Note & note);
 
+	virtual void GetNoteAttachments
+		( const Guid     & note
+		, AttachmentList & attachments
+		);
+
 	virtual void GetNoteBody
 		( const Guid   & guid
 		, std::wstring & body
@@ -220,7 +225,7 @@ public:
 
 	virtual std::wstring GetPath();
 
-	virtual std::wstring GetPassword();
+	virtual std::wstring GetPasswordHash();
 
 	virtual void GetResource
 		( const std::string & hash
@@ -231,6 +236,8 @@ public:
 		( const Guid & guid
 		, Resource   & resource
 		);
+
+	virtual void GetResources(GuidList & resources);
 
 	virtual __int64 GetSize();
 
@@ -261,11 +268,16 @@ public:
 
 	virtual void MoveToDevice();
 
-	virtual void RemoveNoteTags(const Guid & note);
+	virtual void ReplaceNote
+		( const Note          & note
+		, const std::wstring  & body
+		, const std::wstring  & bodyText
+		, const Notebook      & notebook
+		);
 
 	virtual void SetCredentials
 		( const std::wstring & username
-		, const std::wstring & password
+		, const std::wstring & passwordHash
 		);
 
 	virtual void SetLastSyncEnTime(__int64 enTime);
@@ -294,6 +306,11 @@ public:
 	virtual void UpdateNotebook
 		( const Guid     & notebook
 		, const Notebook & replacement
+		);
+
+	virtual void UpdateResource
+		( const Guid     & resource
+		, const Resource & replacement
 		);
 
 	virtual void UpdateTag
