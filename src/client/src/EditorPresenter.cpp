@@ -8,6 +8,7 @@
 #include "INoteView.h"
 #include "IUserModel.h"
 #include "Transaction.h"
+#include "WaitCursor.h"
 
 using namespace boost;
 using namespace std;
@@ -36,6 +37,8 @@ EditorPresenter::EditorPresenter
 
 void EditorPresenter::OnAccept()
 {
+	MacroWaitCursor;
+
 	wstring bodyHtml;
 	editorView.GetBody(bodyHtml);
 
@@ -85,6 +88,8 @@ void EditorPresenter::OnDeleteNote()
 
 void EditorPresenter::OnEditNote()
 {
+	MacroWaitCursor;
+
 	editorView.Show();
 	noteView.Hide();
 
@@ -111,7 +116,7 @@ void EditorPresenter::OnNewNote()
 	note.isDirty      = true;
 	note.usn          = 0;
 
-	wstring body(L"<div type=\"en-note\" />");
+	wstring body(L"<p>&nbsp;</p>");
 
 	editorView.SetNote(note, body);
 }
