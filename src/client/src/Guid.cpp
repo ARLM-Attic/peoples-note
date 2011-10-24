@@ -48,6 +48,11 @@ Guid::operator const string & () const
 	return data;
 }
 
+Guid::operator wstring () const
+{
+	return ConvertToUnicode(data);
+}
+
 bool Guid::operator == (const Guid & guid) const
 {
 	return data == guid.data;
@@ -56,6 +61,11 @@ bool Guid::operator == (const Guid & guid) const
 bool Guid::operator != (const Guid & guid) const
 {
 	return !(*this == guid);
+}
+
+bool Guid::operator < (const Guid & guid) const
+{
+	return data < guid.data;
 }
 
 Guid Guid::GetEmpty()

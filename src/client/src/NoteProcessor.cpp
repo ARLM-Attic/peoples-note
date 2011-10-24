@@ -31,9 +31,6 @@ void NoteProcessor::AddLocal(const EnInteropNote & remote)
 	wstring bodyText;
 	enNoteTranslator.ConvertToText(body, bodyText);
 
-	vector<wstring> tagNames;
-	noteStore.GetNoteTagNames(remote.note, tagNames);
-
 	Transaction transaction(userModel);
 	userModel.ReplaceNote(remote.note, body, bodyText, notebook);
 	foreach (const Guid & guid, remote.resources)
@@ -46,8 +43,8 @@ void NoteProcessor::AddLocal(const EnInteropNote & remote)
 		foreach (const RecognitionEntry & entry, recognitionEntries)
 			userModel.AddRecognitionEntry(entry);
 	}
-	foreach (const wstring & tagName, tagNames)
-		userModel.AddTagToNote(tagName, remote.note);
+	foreach (const Guid & tag, remote.tags)
+		userModel.AddTagToNote(tag, remote.note);
 }
 
 void NoteProcessor::DeleteLocal(const EnInteropNote & local)
@@ -74,11 +71,22 @@ void NoteProcessor::CreateRemote(const EnInteropNote & local)
 	wstring bodyText;
 	enNoteTranslator.ConvertToText(body, bodyText);
 
-	Note replacement;
-	noteStore.CreateNote(local.note, body, resources, notebook.guid, replacement);
+	Note     replacement;
+	GuidList replacementTags;
+	noteStore.CreateNote
+		( local.note
+		, body
+		, resources
+		, notebook.guid
+		, replacement
+		, replacementTags
+		);
 
-	userModel.ExpungeNote(local.note.guid);
+	userModel.ExpungeNote(local.guid);
 	userModel.AddNote(replacement, body, bodyText, notebook);
+	
+	foreach (const Guid & tag, replacementTags)
+		userModel.AddTagToNote(tag, replacement);
 
 	foreach (Resource & resource, resources)
 	{
@@ -92,28 +100,12 @@ void NoteProcessor::MergeLocal
 	, const EnInteropNote & remote
 	)
 {
-	Transaction transaction(userModel);
-
-	userModel.ExpungeNote(local.note.guid);
-
-	wstring body;
-	noteStore.GetNoteBody(remote.note, body);
-
-	wstring bodyText;
-	enNoteTranslator.ConvertToText(body, bodyText);
-
-	userModel.AddNote(remote.note, body, bodyText, notebook);
-
-	foreach (const Guid & guid, remote.resources)
-	{
-		Resource             resource;
-		RecognitionEntryList recognitionEntries;
-
-		noteStore.GetNoteResource(guid, resource, recognitionEntries);
-		userModel.AddResource(resource);
-		foreach (const RecognitionEntry & entry, recognitionEntries)
-			userModel.AddRecognitionEntry(entry);
-	}
+	const Timestamp & l(local.note.modificationDate);
+	const Timestamp & r(remote.note.modificationDate);
+	if(l.IsValid() && r.IsValid() && r < l)
+		UpdateRemote(local);
+	else
+		AddLocal(remote);
 }
 
 void NoteProcessor::UpdateRemote(const EnInteropNote & local)
@@ -130,9 +122,34 @@ void NoteProcessor::UpdateRemote(const EnInteropNote & local)
 	wstring bodyText;
 	enNoteTranslator.ConvertToText(body, bodyText);
 
-	Note replacement;
-	noteStore.UpdateNote(local.note, body, resources, notebook.guid, replacement);
+	TagList tags;
+	userModel.GetNoteTags(local.note, tags);
+	GuidList tagGuids;
+	tagGuids.reserve(tags.size());
+	foreach (const Tag & tag, tags)
+		tagGuids.push_back(tag.guid);
+
+	Note     replacement;
+	GuidList replacementTags;
+	noteStore.UpdateNote
+		( local.note
+		, body
+		, tagGuids
+		, resources
+		, notebook.guid
+		, replacement
+		, replacementTags
+		);
 
 	userModel.ExpungeNote(local.note.guid);
 	userModel.AddNote(replacement, body, bodyText, notebook);
+
+	foreach (const Guid & tag, replacementTags)
+		userModel.AddTagToNote(tag, replacement);
+
+	foreach (Resource & resource, resources)
+	{
+		resource.Note = replacement.guid;
+		userModel.AddResource(resource);
+	}
 }

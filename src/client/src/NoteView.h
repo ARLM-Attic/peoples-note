@@ -13,6 +13,7 @@ class NoteView : public HTMLayoutWindow, public INoteView
 	MacroEvent(Attachment)
 	MacroEvent(Close)
 	MacroEvent(Edit)
+	MacroEvent(EditTags)
 	MacroEvent(ToggleMaximize)
 
 private:
@@ -93,6 +94,8 @@ public:
 		, const AttachmentViewInfoList & attachments
 		, const bool                     enableChrome
 		);
+
+	virtual void SetSubtitle(const std::wstring & subtitleText);
 
 	virtual void SetWindowTitle(const std::wstring & text);
 

@@ -49,17 +49,16 @@ void MockUserModel::AddTag(const Tag & tag)
 }
 
 void MockUserModel::AddTagToNote
-	( const std::wstring & tagName
-	, const Note         & note
+	( const Guid & tag
+	, const Note & note
 	)
 {
-	foreach (const Tag & tag, tags)
+	foreach (const Tag & t, tags)
 	{
-		if (tag.name == tagName)
-		{
-			noteTags.insert(NoteTag(note.guid, tag.guid));
-			return;
-		}
+		if (t.guid != tag)
+			continue;
+		noteTags.insert(make_pair(note.guid, tag));
+		return;
 	}
 }
 
@@ -76,6 +75,13 @@ void MockUserModel::ConnectLoaded(slot_type OnLoaded)
 void MockUserModel::DeleteNote(const Guid & note)
 {
 	deletedNotes.push_back(note);
+}
+
+void MockUserModel::DeleteNoteTags(const Guid & note)
+{
+	typedef multimap<Guid, Guid>::const_iterator Iter;
+	pair<Iter, Iter> range(noteTags.equal_range(note));
+	noteTags.erase(range.first, range.second);
 }
 
 void MockUserModel::DeleteNoteThumbnail(const Guid & note)
@@ -214,12 +220,19 @@ void MockUserModel::GetNoteTags
 	, TagList    & tags
 	)
 {
-	NoteTag noteTag;
-	noteTag.note = note.guid;
+	struct EqualTag
+	{
+		const Guid & tag;
+		EqualTag(const Guid & tag) : tag(tag) {}
+		bool operator () (const pair<Guid, Guid> & p) { return p.second == tag; }
+	};
+
+	typedef multimap<Guid, Guid>::const_iterator Iter;
+
 	foreach (Tag & tag, this->tags)
 	{
-		noteTag.tag = tag.guid;
-		if (noteTags.find(noteTag) != noteTags.end())
+		pair<Iter, Iter> range = noteTags.equal_range(note.guid);
+		if (find_if(range.first, range.second, EqualTag(tag.guid)) != range.second)
 			tags.push_back(tag);
 	}
 }

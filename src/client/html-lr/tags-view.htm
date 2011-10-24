@@ -1,0 +1,86 @@
+<html thumb-width=164 thumb-height=100>
+	<head>
+		<style>
+			body
+			{
+				background-color : #f0ec40;
+				color            : black;
+				margin           : 0px;
+				padding          : 0px;
+				text-align       : left;
+			}
+			h1
+			{
+				font-size   : 24px;
+				font-weight : normal;
+				margin      : 4px 0px 4px 9px;
+			}
+			#tag-panel
+			{
+				flow     : horizontal;
+				height   : 100%%;
+				overflow : hidden;
+				width    : 100%;
+			}
+			#tag-list
+			{
+				height   : 100%%;
+				overflow : hidden;
+				width    : 100%%;
+			}
+			.tag
+			{
+				background-color    : #f0ec40;
+				background-image    : url(corner.png);
+				background-position : right top;
+				background-repeat   : no-repeat;
+				behavior            : clickable;
+				border-top          : 1px solid #606060;
+				flow                : horizontal;
+				font-size           : 12px;
+				height              : 32px;
+				padding             : 0px 15px 0px 9px;
+				overflow            : hidden;
+				width               : 100%%;
+			}
+			.tag *
+			{
+				vertical-align : middle;
+			}
+			.tag img
+			{
+				margin-right : 4px;
+			}
+			.tag[dirty]
+			{
+				background-image : url(corner-light.png);
+				background-color : #f0ecb0;
+			}
+			#vscroll
+			{
+				background : white;
+				height     : 100%%;
+				overflow   : hidden;
+				width      : 5px;
+			}
+			#vscroll #slider
+			{
+				background-color : #606060;
+				border-radius    : 2px;
+				display          : none;
+				height           : 64px;
+				width            : 100%%;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Choose tags</h1>
+		<div #tag-panel>
+			<div #tag-list>
+				<div #selected tabindex="1" />
+				<div #cleared tabindex="0" />
+			</div>
+			<div #vscroll><div #slider /></div>
+		</div>
+	</body>
+</html>

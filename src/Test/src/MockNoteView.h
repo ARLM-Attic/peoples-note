@@ -8,6 +8,7 @@ class MockNoteView : public INoteView
 	MacroTestEvent(Attachment)
 	MacroTestEvent(Close)
 	MacroTestEvent(Edit)
+	MacroTestEvent(EditTags)
 	MacroTestEvent(ToggleMaximize)
 
 public:
@@ -72,6 +73,8 @@ public:
 		, const AttachmentViewInfoList & attachments
 		, const bool                     enableChrome
 		);
+
+	virtual void SetSubtitle(const std::wstring & text);
 
 	virtual void SetWindowTitle(const std::wstring & text);
 

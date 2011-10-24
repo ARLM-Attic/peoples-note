@@ -4,6 +4,7 @@
 #include "MockUserModel.h"
 #include "MockNoteListModel.h"
 #include "MockNoteListView.h"
+#include "MockNoteTagListModel.h"
 #include "MockNoteView.h"
 #include "NotePresenter.h"
 
@@ -15,11 +16,12 @@ using namespace std;
 
 struct NotePresenterFixture
 {
-	EnNoteTranslator  enNoteTranslator;
-	MockNoteListModel noteListModel;
-	MockNoteListView  noteListView;
-	MockNoteView      noteView;
-	MockUserModel     userModel;
+	EnNoteTranslator     enNoteTranslator;
+	MockNoteListModel    noteListModel;
+	MockNoteListView     noteListView;
+	MockNoteTagListModel noteTagListModel;
+	MockNoteView         noteView;
+	MockUserModel        userModel;
 
 	NotePresenter notePresenter;
 
@@ -28,6 +30,7 @@ struct NotePresenterFixture
 			( L"/Storage Card/"
 			, noteListModel
 			, noteListView
+			, noteTagListModel
 			, noteView
 			, userModel
 			, enNoteTranslator
@@ -133,8 +136,8 @@ BOOST_FIXTURE_TEST_CASE
 	BOOST_CHECK(noteView.enableChrome);
 	BOOST_CHECK(noteView.isShown);
 
-	userModel.noteTags.insert(MockUserModel::NoteTag("{0}", "{1}"));
-	userModel.noteTags.insert(MockUserModel::NoteTag("{0}", "{2}"));
+	userModel.noteTags.insert(make_pair(Guid("{0}"), Guid("{1}")));
+	userModel.noteTags.insert(make_pair(Guid("{0}"), Guid("{2}")));
 
 	noteListView.SignalOpenNote();
 

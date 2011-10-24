@@ -627,6 +627,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\NoteTagListModel.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\NoteTagListPresenter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\NoteTagListView.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\NoteView.cpp"
 				>
 			</File>
@@ -1098,6 +1110,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\INoteTagListModel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\INoteTagListView.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\INoteView.h"
 				>
 			</File>
@@ -1219,6 +1239,18 @@
 			</File>
 			<File
 				RelativePath=".\src\NoteStore.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\NoteTagListModel.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\NoteTagListPresenter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\NoteTagListView.h"
 				>
 			</File>
 			<File
@@ -1588,19 +1620,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\reflection-48.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html-lr\reflection-48.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\rt-check.png"
+				RelativePath=".\html\reflection-48.png"
 				>
 			</File>
 			<File
 				RelativePath=".\html-lr\rt-check.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\rt-check.png"
 				>
 			</File>
 			<File
@@ -1612,19 +1644,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\rt-em.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html\rt-em.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\rt-hide.png"
+				RelativePath=".\html-lr\rt-em.png"
 				>
 			</File>
 			<File
 				RelativePath=".\html-lr\rt-hide.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\rt-hide.png"
 				>
 			</File>
 			<File
@@ -1644,19 +1676,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\rt-li-ol.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html\rt-li-ol.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\rt-li-ul.png"
+				RelativePath=".\html-lr\rt-li-ol.png"
 				>
 			</File>
 			<File
 				RelativePath=".\html-lr\rt-li-ul.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\rt-li-ul.png"
 				>
 			</File>
 			<File
@@ -1668,19 +1700,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\rt-redo.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html-lr\rt-redo.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\rt-strong.png"
+				RelativePath=".\html\rt-redo.png"
 				>
 			</File>
 			<File
 				RelativePath=".\html\rt-strong.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\rt-strong.png"
 				>
 			</File>
 			<File
@@ -1692,19 +1724,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\rt-undo.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html\rt-undo.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\search.png"
+				RelativePath=".\html-lr\rt-undo.png"
 				>
 			</File>
 			<File
 				RelativePath=".\html\search.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\search.png"
 				>
 			</File>
 			<File
@@ -1716,11 +1748,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\html-lr\status-green.png"
+				>
+			</File>
+			<File
 				RelativePath=".\html\status-green.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\status-green.png"
+				RelativePath=".\html\sync.png"
 				>
 			</File>
 			<File
@@ -1728,7 +1764,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\sync.png"
+				RelativePath=".\html\tag-check.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\tag-check.png"
 				>
 			</File>
 			<File
@@ -1740,11 +1780,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\text-note.png"
+				RelativePath=".\html\text-note.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\text-note.png"
+				RelativePath=".\html-lr\text-note.png"
 				>
 			</File>
 			<File
@@ -1776,19 +1816,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\voice-play-pressed.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html-lr\voice-play-pressed.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\voice-play.png"
+				RelativePath=".\html\voice-play-pressed.png"
 				>
 			</File>
 			<File
 				RelativePath=".\html-lr\voice-play.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\voice-play.png"
 				>
 			</File>
 			<File
@@ -1800,11 +1840,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\voice-record.png"
+				RelativePath=".\html\voice-record.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\voice-record.png"
+				RelativePath=".\html-lr\voice-record.png"
 				>
 			</File>
 			<File
@@ -1891,6 +1931,14 @@
 			</File>
 			<File
 				RelativePath=".\html-lr\signin-view.htm"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\tags-view.htm"
+				>
+			</File>
+			<File
+				RelativePath=".\html\tags-view.htm"
 				>
 			</File>
 			<File

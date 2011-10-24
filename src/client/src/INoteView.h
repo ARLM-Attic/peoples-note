@@ -12,6 +12,7 @@ class INoteView : public ISignalProvider
 	MacroIEvent(Attachment)
 	MacroIEvent(Close)
 	MacroIEvent(Edit)
+	MacroIEvent(EditTags)
 	MacroIEvent(ToggleMaximize)
 
 public:
@@ -50,6 +51,8 @@ public:
 		, const AttachmentViewInfoList & attachments
 		, const bool                     enableChrome
 		) = 0;
+
+	virtual void SetSubtitle(const std::wstring & subtitleText) = 0;
 
 	virtual void SetWindowTitle(const std::wstring & text) = 0;
 
