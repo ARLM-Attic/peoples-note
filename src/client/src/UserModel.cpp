@@ -465,7 +465,7 @@ int UserModel::GetDirtyNoteCount(const Notebook & notebook)
 	IDataStore::Statement statement = dataStore.MakeStatement
 		( "SELECT Count(*)"
 		"  FROM Notes"
-		"  WHERE isDeleted = 0 AND isDirty = 1 AND notebook = ?"
+		"  WHERE isDirty = 1 AND notebook = ?"
 		);
 	statement->Bind(1, notebook.guid);
 	if (statement->Execute())
@@ -1146,7 +1146,7 @@ void UserModel::ReplaceNote
 			);
 
 		IDataStore::Statement insertText = dataStore.MakeStatement
-			( "INSERT INTO NoteText(rowid, title, body)"
+			( "INSERT OR REPLACE INTO NoteText(rowid, title, body)"
 			"  VALUES (?, ?, ?)"
 			);
 		insertText->Bind(1, rowid);

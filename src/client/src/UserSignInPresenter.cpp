@@ -33,16 +33,16 @@ UserSignInPresenter::UserSignInPresenter
 void UserSignInPresenter::OnCredentialsSet()
 try
 {
+	userModel.Unload();
+
 	wstring username(credentialsModel.GetUsername());
 	wstring password(credentialsModel.GetPassword());
 
 	if (username.empty())
 	{
-		credentialsModel.Update(L"");
+		credentialsModel.Set(anonymousUser, L"");
 		return;
 	}
-
-	userModel.Unload();
 
 	if (username == anonymousUser)
 	{
@@ -98,7 +98,7 @@ catch (const std::exception & e)
 void UserSignInPresenter::OnSignIn()
 {
 	if (userModel.GetUsername() == anonymousUser)
-		credentialsModel.Set(L"", L"");
+		credentialsModel.Update(L"");
 	else
 		credentialsModel.Set(anonymousUser, L"");
 }
