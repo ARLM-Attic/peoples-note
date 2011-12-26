@@ -4,7 +4,7 @@
 #include "crackers.h"
 #include "IHtmlDataLoader.h"
 #include "resourceppc.h"
-#include "Scrollbar.h"
+#include "Scrolling.h"
 #include "Tools.h"
 
 #include <sstream>
@@ -407,12 +407,12 @@ ATOM NoteListView::RegisterClass(wstring wndClass)
 
 void NoteListView::SetScrollPos(int pos)
 {
-	noteList.send_event(TOUCH_SCROLL_POS, pos, listScroll);
+	ScrollVertically(noteList, listScroll, pos);
 }
 
 void NoteListView::UpdateScrollbar()
 {
-	noteList.send_event(TOUCH_SCROLL_UPDATE, 0, listScroll);
+	UpdateVerticalScrollbar(noteList, listScroll);
 }
 
 //-------------------------
@@ -513,7 +513,7 @@ void NoteListView::ProcessMessage(WndMsg &msg)
 	}
 	catch (const std::exception & e)
 	{
-		DEBUGMSG(true, (L"%s\n", ConvertToUnicode(e.what()).c_str()));
+		::NKDbgPrintfW(L"%s\n", ConvertToUnicode(e.what()).c_str());
 		throw e;
 	}
 }

@@ -5,7 +5,7 @@
 #include "IAnimator.h"
 #include "Rect.h"
 #include "resourceppc.h"
-#include "Scrollbar.h"
+#include "Scrolling.h"
 #include "Tools.h"
 
 #include <algorithm>
@@ -46,45 +46,12 @@ void NoteView::Create(HWND parent)
 {
 	this->parent = parent;
 
-	wstring wndTitle = LoadStringResource(IDS_APP_TITLE);
 	wstring wndClass = LoadStringResource(IDC_NOTE_VIEW);
 
-	//if (!RegisterClass(wndClass))
-	//	throw std::exception("Class could not be registered.");
-	RegisterClass(wndClass);
+	if (!RegisterClass(wndClass))
+		throw std::exception("Class could not be registered.");
 
-	DWORD windowStyle   (WS_POPUP);
-	DWORD windowExStyle (WS_EX_CAPTIONOKBTN);
-
-	Rect rect;
-	::SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, FALSE);
-
-	hwnd_ = ::CreateWindowEx
-		( windowExStyle    // dwExStyle
-		, wndClass.c_str() // lpClassName
-		, wndTitle.c_str() // lpWindowName
-		, windowStyle      // dwStyle
-		, rect.GetX()      // x
-		, rect.GetY()      // y
-		, rect.GetWidth()  // nWidth
-		, rect.GetHeight() // nHeight
-		, parent           // hWndParent
-		, NULL             // hMenu
-		, instance         // hInstance
-		, this             // lpParam
-		);
-	if (!hwnd_)
-		throw std::exception("Window creation failed.");
-
-	SHMENUBARINFO menuBarInfo = { sizeof(menuBarInfo) };
-	menuBarInfo.hwndParent = hwnd_;
-	menuBarInfo.dwFlags    = SHCMBF_HIDDEN | SHCMBF_HIDESIPBUTTON;
-	menuBarInfo.nToolBarId = IDR_NOTE_VIEW_MENUBAR;
-	menuBarInfo.hInstRes   = instance;
-	::SHCreateMenuBar(&menuBarInfo);
-	menuBar = menuBarInfo.hwndMB;
-
-	UpdateWindowState();
+	Reset();
 }
 
 void NoteView::RegisterEventHandlers()
@@ -170,8 +137,7 @@ void NoteView::Hide()
 	::ShowWindow(hwnd_,   SW_HIDE);
 	::ShowWindow(menuBar, SW_HIDE);
 
-	::DestroyWindow(hwnd_);
-	Create(parent);
+	Reset();
 
 	SignalClose();
 }
@@ -301,6 +267,51 @@ POINT NoteView::GetScrollPos()
 	return scrollPos;
 }
 
+void NoteView::Reset()
+{
+	if (hwnd_)
+	{
+		::DestroyWindow(hwnd_);
+		hwnd_ = NULL;
+	}
+
+	wstring wndTitle = LoadStringResource(IDS_APP_TITLE);
+	wstring wndClass = LoadStringResource(IDC_NOTE_VIEW);
+
+	DWORD windowStyle   (WS_POPUP);
+	DWORD windowExStyle (WS_EX_CAPTIONOKBTN);
+
+	Rect rect;
+	::SystemParametersInfo(SPI_GETWORKAREA, 0, &rect, FALSE);
+
+	hwnd_ = ::CreateWindowEx
+		( windowExStyle    // dwExStyle
+		, wndClass.c_str() // lpClassName
+		, wndTitle.c_str() // lpWindowName
+		, windowStyle      // dwStyle
+		, rect.GetX()      // x
+		, rect.GetY()      // y
+		, rect.GetWidth()  // nWidth
+		, rect.GetHeight() // nHeight
+		, parent           // hWndParent
+		, NULL             // hMenu
+		, instance         // hInstance
+		, this             // lpParam
+		);
+	if (!hwnd_)
+		throw std::exception("Window creation failed.");
+
+	SHMENUBARINFO menuBarInfo = { sizeof(menuBarInfo) };
+	menuBarInfo.hwndParent = hwnd_;
+	menuBarInfo.dwFlags    = SHCMBF_HIDDEN | SHCMBF_HIDESIPBUTTON;
+	menuBarInfo.nToolBarId = IDR_NOTE_VIEW_MENUBAR;
+	menuBarInfo.hInstRes   = instance;
+	::SHCreateMenuBar(&menuBarInfo);
+	menuBar = menuBarInfo.hwndMB;
+
+	UpdateWindowState();
+}
+
 ATOM NoteView::RegisterClass(const wstring & wndClass)
 {
 	WNDCLASS wc = { 0 };
@@ -349,14 +360,14 @@ void NoteView::SetChrome(bool enable)
 
 void NoteView::SetScrollPos(POINT pos)
 {
-	body.send_event(TOUCH_SCROLL_POS, pos.x, hScroll);
-	body.send_event(TOUCH_SCROLL_POS, pos.y, vScroll);
+	ScrollHorizontally (body, hScroll, pos.x);
+	ScrollVertically   (body, vScroll, pos.y);
 }
 
 void NoteView::UpdateScrollbar()
 {
-	body.send_event(TOUCH_SCROLL_UPDATE, 0, vScroll);
-	body.send_event(TOUCH_SCROLL_UPDATE, 0, hScroll);
+	UpdateHorizontalScrollbar (body, hScroll);
+	UpdateVerticalScrollbar   (body, vScroll);
 }
 
 void NoteView::UpdateWindowState()
@@ -531,7 +542,7 @@ void NoteView::ProcessMessage(WndMsg &msg)
 	}
 	catch (const std::exception & e)
 	{
-		DEBUGMSG(true, (L"%s\n", ConvertToUnicode(e.what()).c_str()));
+		::NKDbgPrintfW(L"%s\n", ConvertToUnicode(e.what()).c_str());
 		throw e;
 	}
 }
