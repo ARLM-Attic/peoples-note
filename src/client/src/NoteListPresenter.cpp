@@ -7,7 +7,6 @@
 #include "INoteView.h"
 #include "ISyncModel.h"
 #include "IUserModel.h"
-#include "NotebookMenuGenerator.h"
 #include "Notebook.h"
 #include "Tools.h"
 #include "Transaction.h"
@@ -113,26 +112,19 @@ void NoteListPresenter::OnNotebookTitle()
 
 void NoteListPresenter::OnNoteListChanged()
 {
-	if (noteListModel.HasPreviousNotes())
-		noteListView.ShowPageUp();
-	else
-		noteListView.HidePageUp();
-
-	if (noteListModel.HasNextNotes())
-		noteListView.ShowPageDown();
-	else
-		noteListView.HidePageDown();
-
-	NoteList::const_iterator notesBegin;
-	NoteList::const_iterator notesEnd;
-	noteListModel.GetCurrentPage(notesBegin, notesEnd);
+	NoteList notes;
+	bool hasPreviousPage, hasNextPage;
+	noteListModel.GetCurrentPage(notes, hasPreviousPage, hasNextPage);
 	noteListView.ClearNotes();
-	for (; notesBegin != notesEnd; ++notesBegin)
+	foreach (const Note & note, notes)
 	{
-		const Note & note(*notesBegin);
 		wstring guid(note.guid);
 		noteListView.AddNote(ConvertToHtml(note, guid), guid, note.isDirty);
 	}
+	if (hasPreviousPage) noteListView.ShowPageUp();
+	else                 noteListView.HidePageUp();
+	if (hasNextPage) noteListView.ShowPageDown();
+	else             noteListView.HidePageDown();
 	noteListView.UpdateNotes();
 }
 
@@ -160,10 +152,7 @@ void NoteListPresenter::OnSyncEnd()
 
 	NotebookList notebooks;
 	userModel.GetNotebooks(notebooks);
-	
-	wstring menuHtml;
-	NotebookMenuGenerator::GetMenuHtml(notebooks, 6, menuHtml);
-	noteListView.SetNotebookMenu(menuHtml);
+	noteListView.SetNotebookMenu(notebooks);
 
 	UpdateSyncCounter();
 	noteListView.EnableSync();
@@ -224,10 +213,7 @@ void NoteListPresenter::UpdateNotebookListView()
 {
 	NotebookList notebooks;
 	userModel.GetNotebooks(notebooks);
-
-	wstring menuHtml;
-	NotebookMenuGenerator::GetMenuHtml(notebooks, 6, menuHtml);
-	noteListView.SetNotebookMenu(menuHtml);
+	noteListView.SetNotebookMenu(notebooks);
 }
 
 void NoteListPresenter::UpdateNotebookTitleState()

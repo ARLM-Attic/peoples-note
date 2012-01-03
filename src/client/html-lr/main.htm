@@ -1,7 +1,6 @@
 ﻿<html thumb-width=82 thumb-height=50>
 	<head>
 		<style>
-			@import url(menu.css);
 			body
 			{
 				background : white;
@@ -14,7 +13,6 @@
 			#menu
 			{
 				background     : url(gradient-60.png) repeat-x;
-				behavior       : popup-menu;
 				border         : 1px solid #606060;
 				height         : 28px;
 				margin         : -1px;
@@ -147,7 +145,7 @@
 				overflow   : hidden;
 				width      : 5px;
 			}
-			#scroll #slider
+			#scroll > .slider
 			{
 				background-color : #606060;
 				border-radius    : 2px;
@@ -253,8 +251,7 @@
 		</style>
 	</head>
 	<body>
-		<div #notebook-title>
-		</div>
+		<div #notebook-title />
 		<div #search-frame>
 			<widget #search-box    type="text"   tabindex="2" />
 			<widget #search-button type="button" tabindex="3" />
@@ -271,7 +268,7 @@
 				<div #page-up>Later notes</div>
 				<div #page-down>Eariler notes</div>
 			</div>
-			<div #scroll><div #slider /></div>
+			<div #scroll><div .slider /></div>
 		</div>
 		<div #status-bar>
 			<div #sync-panel>
@@ -279,21 +276,7 @@
 				<div #sync-text />
 			</div>
 			<div #status-progress><div #status-button><span #status /></div></div>
-			<div #menu>
-				Menu
-				<menu>
-					<li #menu-profile />
-					<li #menu-signin>Sign in</li>
-					<hr />
-					<li #menu-notebook-title>Show title</li>
-					<hr />
-					<li>Notebook <menu #notebook-list /></li>
-					<li #menu-import>Import notes</li>
-					<hr />
-					<li #menu-about>About</li>
-					<li #menu-exit>Exit</li>
-				</menu>
-			</div>
+			<widget type="button" #menu>Menu</widget>
 		</div>
 	</body>
 </html>

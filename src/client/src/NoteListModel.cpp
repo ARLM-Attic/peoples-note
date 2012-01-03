@@ -22,17 +22,21 @@ NoteListModel::NoteListModel
 }
 
 void NoteListModel::GetCurrentPage
-	( NoteList::const_iterator & begin
-	, NoteList::const_iterator & end
+	( NoteList & notes
+	, bool     & hasPreviousPage
+	, bool     & hasNextPage
 	)
 {
-	// the checks could be simpler, if not for iterator verification
-	begin = notes.begin() + currentPage * pageSize;
-	end =
-		(notes.end() - begin > pageSize)
-		? begin + pageSize
-		: notes.end()
-		;
+	Transaction transaction(userModel);
+	Notebook notebook;
+	userModel.GetLastUsedNotebook(notebook);
+
+	// ask for one more note than necessary to tell whether there is another page
+	userModel.GetNotesBySearch(notebook.guid, query, currentPage * pageSize, pageSize + 1, notes);
+	hasPreviousPage = currentPage > 0;
+	hasNextPage     = notes.size() > pageSize;
+	if (hasNextPage)
+		notes.pop_back();
 }
 
 bool NoteListModel::GetNotebookTitleState()
@@ -41,38 +45,21 @@ bool NoteListModel::GetNotebookTitleState()
 	return state == L"enabled";
 }
 
-bool NoteListModel::HasNextNotes()
-{
-	int notesUpToCurrent((currentPage + 1) * pageSize);
-	return notesUpToCurrent < static_cast<int>(notes.size());
-}
-
-bool NoteListModel::HasPreviousNotes()
-{
-	return currentPage > 0;
-}
-
 void NoteListModel::Reload()
 {
-	Transaction transaction(userModel);
-	Notebook notebook;
-	userModel.GetLastUsedNotebook(notebook);
-	userModel.GetNotesByNotebook(notebook, notes);
 	currentPage = 0;
 	SignalChanged();
 }
 
 void NoteListModel::SelectNextPage()
 {
-	if (!HasNextNotes())
-		throw std::exception("Invalid call to NoteListModel::SelectNextPage.");
 	++currentPage;
 	SignalChanged();
 }
 
 void NoteListModel::SelectPreviousPage()
 {
-	if (!HasPreviousNotes())
+	if (currentPage <= 0)
 		throw std::exception("Invalid call to NoteListModel::SelectPreviousPage.");
 	--currentPage;
 	SignalChanged();
@@ -86,9 +73,7 @@ void NoteListModel::SetNotebookTitleState(bool isEnabled)
 		);
 }
 
-void NoteListModel::SetNotes(const NoteList & notes)
+void NoteListModel::SetQuery(const wstring & query)
 {
-	this->notes = notes;
-	currentPage = 0;
-	SignalChanged();
+	this->query = query;
 }

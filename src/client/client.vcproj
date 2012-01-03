@@ -591,10 +591,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\NotebookMenuGenerator.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\NotebookProcessor.cpp"
 				>
 			</File>
@@ -1207,10 +1203,6 @@
 			</File>
 			<File
 				RelativePath=".\src\Notebook.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\NotebookMenuGenerator.h"
 				>
 			</File>
 			<File
@@ -1891,14 +1883,6 @@
 			</File>
 			<File
 				RelativePath=".\html\main.htm"
-				>
-			</File>
-			<File
-				RelativePath=".\html-lr\menu.css"
-				>
-			</File>
-			<File
-				RelativePath=".\html\menu.css"
 				>
 			</File>
 			<File

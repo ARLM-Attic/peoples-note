@@ -454,7 +454,7 @@ void UserModel::GetDeletedNotes(GuidList & notes)
 		);
 	while (!statement->Execute())
 	{
-		string guid;
+		Guid guid;
 		statement->Get(0, guid);
 		notes.push_back(guid);
 	}
@@ -593,7 +593,7 @@ void UserModel::GetNoteResources
 	statement->Bind(1, note);
 	while (!statement->Execute())
 	{
-		string guid;
+		Guid guid;
 		statement->Get(0, guid);
 		resources.push_back(guid);
 	}
@@ -706,19 +706,47 @@ void UserModel::GetNotebooks(NotebookList & notebooks)
 }
 
 void UserModel::GetNotesByNotebook
-	( const Notebook & notebook
-	, NoteList       & notes
+	( const Guid & notebook
+	, NoteList   & notes
+	)
+{
+	GetNotesByNotebook(notebook, 0, 0, notes);
+}
+
+void UserModel::GetNotesByNotebook
+	( const Guid & notebook
+	, int          start
+	, int          count
+	, NoteList   & notes
 	)
 {
 	notes.clear();
-	IDataStore::Statement statement = dataStore.MakeStatement
-		("SELECT guid, usn, title, isDirty, creationDate, modificationDate, subjectDate,"
-		"        altitude, latitude, longitude, author, source, sourceUrl, sourceApplication"
-		"  FROM Notes"
-		"  WHERE isDeleted = 0 AND notebook = ?"
-		"  ORDER BY modificationDate DESC, creationDate DESC"
-		);
-	statement->Bind(1, notebook.guid);
+	IDataStore::Statement statement;
+	if (count > 0)
+	{
+		statement = dataStore.MakeStatement
+			("SELECT guid, usn, title, isDirty, creationDate, modificationDate, subjectDate,"
+			"        altitude, latitude, longitude, author, source, sourceUrl, sourceApplication"
+			"  FROM Notes"
+			"  WHERE isDeleted = 0 AND notebook = ?"
+			"  ORDER BY modificationDate DESC, creationDate DESC"
+			"  LIMIT ? OFFSET ?"
+			);
+		statement->Bind(1, notebook);
+		statement->Bind(2, count);
+		statement->Bind(3, start);
+	}
+	else
+	{
+		statement = dataStore.MakeStatement
+			("SELECT guid, usn, title, isDirty, creationDate, modificationDate, subjectDate,"
+			"        altitude, latitude, longitude, author, source, sourceUrl, sourceApplication"
+			"  FROM Notes"
+			"  WHERE isDeleted = 0 AND notebook = ?"
+			"  ORDER BY modificationDate DESC, creationDate DESC"
+			);
+		statement->Bind(1, notebook);
+	}
 	while (!statement->Execute())
 	{
 		notes.push_back(Note());
@@ -742,32 +770,18 @@ void UserModel::GetNotesByNotebook
 }
 
 void UserModel::GetNotesBySearch
-	( const std::wstring & search
-	, NoteList           & notes
+	( const Guid    & notebook
+	, const wstring & search
+	, int             start
+	, int             count
+	, NoteList      & notes
 	)
 {
-	notes.clear();
-	IDataStore::Statement statement = dataStore.MakeStatement
-		("SELECT guid, usn, title, isDirty, creationDate, modificationDate, subjectDate,"
-		"        altitude, latitude, longitude, author, source, sourceUrl, sourceApplication"
-		" FROM ( SELECT n.guid"
-		"        FROM   Notes AS n JOIN NoteText ON (n.rowid = NoteText.rowid)"
-		"        WHERE  n.isDeleted = 0 AND NoteText MATCH ?"
-		"        UNION"
-		"        SELECT n.guid"
-		"        FROM   Notes    AS n"
-		"        JOIN   NoteTags AS nt ON (n.guid = nt.note)"
-		"        JOIN   Tags     AS t  ON (t.guid = nt.tag)"
-		"        WHERE  n.isDeleted = 0 AND t.searchName = ?"
-		"        UNION"
-		"        SELECT n.guid"
-		"        FROM   Notes       AS n"
-		"        JOIN   Resources   AS rs ON (n.guid = rs.note)"
-		"        JOIN   Recognition AS rc ON (rs.guid = rc.resource)"
-		"        WHERE  n.isDeleted = 0 AND rc.text = ?"
-		"      ) JOIN Notes USING (guid)"
-		" ORDER BY modificationDate DESC, creationDate DESC"
-		);
+	if (search.find_first_not_of(L" \t") == wstring::npos)
+	{
+		GetNotesByNotebook(notebook, start, count, notes);
+		return;
+	}
 	wstring ucSearch;
 	transform
 		( search.begin()
@@ -775,9 +789,71 @@ void UserModel::GetNotesBySearch
 		, back_inserter(ucSearch)
 		, towupper
 		);
-	statement->Bind(1, ucSearch);
-	statement->Bind(2, ucSearch);
-	statement->Bind(3, ucSearch);
+	notes.clear();
+	IDataStore::Statement statement;
+	if (count > 0)
+	{
+		statement = dataStore.MakeStatement
+			("SELECT guid, usn, title, isDirty, creationDate, modificationDate, subjectDate,"
+			"        altitude, latitude, longitude, author, source, sourceUrl, sourceApplication"
+			" FROM ( SELECT n.guid"
+			"        FROM   Notes AS n JOIN NoteText ON (n.rowid = NoteText.rowid)"
+			"        WHERE  n.isDeleted = 0 AND n.notebook = ? AND NoteText MATCH ?"
+			"        UNION"
+			"        SELECT n.guid"
+			"        FROM   Notes    AS n"
+			"        JOIN   NoteTags AS nt ON (n.guid = nt.note)"
+			"        JOIN   Tags     AS t  ON (t.guid = nt.tag)"
+			"        WHERE  n.isDeleted = 0 AND n.notebook = ? AND t.searchName = ?"
+			"        UNION"
+			"        SELECT n.guid"
+			"        FROM   Notes       AS n"
+			"        JOIN   Resources   AS rs ON (n.guid = rs.note)"
+			"        JOIN   Recognition AS rc ON (rs.guid = rc.resource)"
+			"        WHERE  n.isDeleted = 0 AND n.notebook = ? AND rc.text = ?"
+			"      ) JOIN Notes USING (guid)"
+			" ORDER BY modificationDate DESC, creationDate DESC"
+			" LIMIT ? OFFSET ?"
+			);
+		statement->Bind(1, notebook);
+		statement->Bind(2, ucSearch);
+		statement->Bind(3, notebook);
+		statement->Bind(4, ucSearch);
+		statement->Bind(5, notebook);
+		statement->Bind(6, ucSearch);
+		statement->Bind(7, count);
+		statement->Bind(8, start);
+	}
+	else
+	{
+		statement = dataStore.MakeStatement
+			("SELECT guid, usn, title, isDirty, creationDate, modificationDate, subjectDate,"
+			"        altitude, latitude, longitude, author, source, sourceUrl, sourceApplication"
+			" FROM ( SELECT n.guid"
+			"        FROM   Notes AS n JOIN NoteText ON (n.rowid = NoteText.rowid)"
+			"        WHERE  n.isDeleted = 0 AND n.notebook = ? AND NoteText MATCH ?"
+			"        UNION"
+			"        SELECT n.guid"
+			"        FROM   Notes    AS n"
+			"        JOIN   NoteTags AS nt ON (n.guid = nt.note)"
+			"        JOIN   Tags     AS t  ON (t.guid = nt.tag)"
+			"        WHERE  n.isDeleted = 0 AND n.notebook = ? AND t.searchName = ?"
+			"        UNION"
+			"        SELECT n.guid"
+			"        FROM   Notes       AS n"
+			"        JOIN   Resources   AS rs ON (n.guid = rs.note)"
+			"        JOIN   Recognition AS rc ON (rs.guid = rc.resource)"
+			"        WHERE  n.isDeleted = 0 AND n.notebook = ? AND rc.text = ?"
+			"      ) JOIN Notes USING (guid)"
+			" ORDER BY modificationDate DESC, creationDate DESC"
+			);
+		statement->Bind(1, notebook);
+		statement->Bind(2, ucSearch);
+		statement->Bind(3, notebook);
+		statement->Bind(4, ucSearch);
+		statement->Bind(5, notebook);
+		statement->Bind(6, ucSearch);
+	}
 	while (!statement->Execute())
 	{
 		notes.push_back(Note());
@@ -881,7 +957,7 @@ void UserModel::GetResources(GuidList & resources)
 		);
 	while (!statement->Execute())
 	{
-		string guid;
+		Guid guid;
 		statement->Get(0, guid);
 		resources.push_back(guid);
 	}
