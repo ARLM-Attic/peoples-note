@@ -10,6 +10,7 @@
 #include "Notebook.h"
 #include "Tools.h"
 #include "Transaction.h"
+#include "WaitCursor.h"
 
 #include <sstream>
 
@@ -32,14 +33,17 @@ NoteListPresenter::NoteListPresenter
 	, syncModel        (syncModel)
 	, enNoteTranslator (enNoteTranslator)
 {
-	noteListModel.ConnectChanged
+	noteListModel.ConnectNoteChanged
+		(bind(&NoteListPresenter::OnNoteChanged, this));
+
+	noteListModel.ConnectNoteListChanged
 		(bind(&NoteListPresenter::OnNoteListChanged, this));
 
 	noteListView.ConnectNotebookSelected
 		(bind(&NoteListPresenter::OnNotebookSelected, this));
 
-	noteListView.ConnectNotebookTitle
-		(bind(&NoteListPresenter::OnNotebookTitle, this));
+	noteListView.ConnectNotebookTitleStateChanged
+		(bind(&NoteListPresenter::OnNotebookTitleChanged, this));
 
 	noteListView.ConnectPageDown
 		(bind(&NoteListPresenter::OnPageDown, this));
@@ -50,20 +54,14 @@ NoteListPresenter::NoteListPresenter
 	noteListView.ConnectSync
 		(bind(&NoteListPresenter::OnSyncBegin, this));
 
-	syncModel.ConnectNotesChanged
-		(bind(&NoteListPresenter::OnNotesChanged, this));
-
-	syncModel.ConnectNotebooksChanged
-		(bind(&NoteListPresenter::OnNotebooksChanged, this));
+	noteListView.ConnectViewStyleChanged
+		(bind(&NoteListPresenter::OnViewStyleChanged, this));
 
 	syncModel.ConnectStatusUpdated
 		(bind(&NoteListPresenter::OnSyncStatusUpdated, this));
 
 	syncModel.ConnectSyncComplete
 		(bind(&NoteListPresenter::OnSyncEnd, this));
-
-	syncModel.ConnectTagsChanged
-		(bind(&NoteListPresenter::OnTagsChanged, this));
 
 	userModel.ConnectLoaded
 		(bind(&NoteListPresenter::OnUserLoaded, this));
@@ -74,23 +72,8 @@ NoteListPresenter::NoteListPresenter
 // event handlers
 //---------------
 
-void NoteListPresenter::OnNotesChanged()
+void NoteListPresenter::OnNoteChanged()
 {
-	Transaction transaction(userModel);
-	UpdateSyncCounter();
-	noteListModel.Reload();
-}
-
-void NoteListPresenter::OnNotebooksChanged()
-{
-	Transaction transaction(userModel);
-	UpdateSyncCounter();
-	UpdateNotebookListView();
-}
-
-void NoteListPresenter::OnTagsChanged()
-{
-	Transaction transaction(userModel);
 	UpdateSyncCounter();
 }
 
@@ -99,19 +82,21 @@ void NoteListPresenter::OnNotebookSelected()
 	Transaction transaction(userModel);
 	UpdateActiveNotebook();
 	UpdateTitle();
+	ResetSearch();
 	noteListModel.Reload();
 	UpdateSyncCounter();
 }
 
-void NoteListPresenter::OnNotebookTitle()
+void NoteListPresenter::OnNotebookTitleChanged()
 {
-	bool isEnabled(noteListView.IsNotebookTitleOptionChecked());
-	noteListModel.SetNotebookTitleState(!isEnabled);
-	UpdateNotebookTitleState();
+	noteListModel.SetNotebookTitleState(noteListView.GetRequestedNotebookTitleState());
+	UpdateNotebookTitle();
 }
 
 void NoteListPresenter::OnNoteListChanged()
 {
+	MacroWaitCursor;
+
 	NoteList notes;
 	bool hasPreviousPage, hasNextPage;
 	noteListModel.GetCurrentPage(notes, hasPreviousPage, hasNextPage);
@@ -166,7 +151,8 @@ void NoteListPresenter::OnSyncStatusUpdated()
 
 void NoteListPresenter::OnUserLoaded()
 {
-	UpdateNotebookTitleState();
+	UpdateNotebookTitle();
+	UpdateViewStyle();
 
 	Transaction transaction(userModel);
 
@@ -193,11 +179,25 @@ void NoteListPresenter::OnUserLoaded()
 	UpdateSyncCounter();
 }
 
+void NoteListPresenter::OnViewStyleChanged()
+{
+	MacroWaitCursor;
+	noteListModel.SetViewStyle(noteListView.GetRequestedViewStyle());
+	UpdateViewStyle();
+}
+
 //--------------------------------------------------
 // utility functions
 //
 // Note: transactions are managed at a higher level.
 //--------------------------------------------------
+
+void NoteListPresenter::ResetSearch()
+{
+	noteListView.SetSearchText(L"");
+	noteListModel.SetQuery(L"");
+	noteListView.SetSearchButtonToSearch();
+}
 
 void NoteListPresenter::UpdateActiveNotebook()
 {
@@ -216,18 +216,12 @@ void NoteListPresenter::UpdateNotebookListView()
 	noteListView.SetNotebookMenu(notebooks);
 }
 
-void NoteListPresenter::UpdateNotebookTitleState()
+void NoteListPresenter::UpdateNotebookTitle()
 {
 	if (noteListModel.GetNotebookTitleState())
-	{
-		noteListView.CheckNotebookTitleOption();
 		noteListView.ShowNotebookTitle();
-	}
 	else
-	{
-		noteListView.UncheckNotebookTitleOption();
 		noteListView.HideNotebookTitle();
-	}
 }
 
 void NoteListPresenter::UpdateSyncCounter()
@@ -251,6 +245,17 @@ void NoteListPresenter::UpdateTitle()
 
 	noteListView.SetWindowTitle(notebook.name);
 	noteView.SetWindowTitle(notebook.name);
+}
+
+void NoteListPresenter::UpdateViewStyle()
+{
+	NotebookViewStyle viewStyle(noteListModel.GetViewStyle());
+	noteListView.SetViewStyle(viewStyle);
+	switch (viewStyle)
+	{
+	case NotebookViewCombined: noteListModel.SetPageSize(20); break;
+	case NotebookViewTitles:   noteListModel.SetPageSize(30); break;
+	}
 }
 
 wstring NoteListPresenter::ConvertToHtml(const Note & note, const wstring & guid)

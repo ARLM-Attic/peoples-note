@@ -75,7 +75,7 @@ BOOST_FIXTURE_TEST_CASE
 	noteListModel.hasPreviousPage = false;
 	noteListModel.hasNextPage     = true;
 
-	noteListModel.SignalChanged();
+	noteListModel.SignalNoteListChanged();
 
 	BOOST_CHECK_EQUAL(noteListView.notesUpdated, true);
 
@@ -123,7 +123,6 @@ BOOST_FIXTURE_TEST_CASE
 	BOOST_CHECK_EQUAL(noteListView.profileText, L"Profile");
 	BOOST_CHECK_EQUAL(noteListView.signinText,  L"Sign in");
 	BOOST_CHECK_EQUAL(noteListView.isSyncButtonShown, false);
-	BOOST_CHECK_EQUAL(noteListView.isNotebookTitleEnabled, false);
 	BOOST_CHECK_EQUAL(noteListView.isNotebookTitleVisible, false);
 
 	BOOST_CHECK_EQUAL(noteListView.windowTitle, L"last-used-notebook");
@@ -150,34 +149,9 @@ BOOST_FIXTURE_TEST_CASE
 	BOOST_CHECK_EQUAL(noteListView.profileText, L"test-usr");
 	BOOST_CHECK_EQUAL(noteListView.signinText,  L"Sign out");
 	BOOST_CHECK_EQUAL(noteListView.isSyncButtonShown, true);
-	BOOST_CHECK_EQUAL(noteListView.isNotebookTitleEnabled, true);
 	BOOST_CHECK_EQUAL(noteListView.isNotebookTitleVisible, true);
 
 	BOOST_CHECK_EQUAL(noteListView.windowTitle, L"last-used-notebook");
-}
-
-BOOST_FIXTURE_TEST_CASE
-	( NoteListPresenter_NotebooksChanged
-	, NoteListPresenterFixture
-	)
-{
-	userModel.notes.push_back(Note());
-	userModel.notes.back().isDirty = true;
-
-	userModel.notes.push_back(Note());
-	userModel.notes.back().isDirty = true;
-
-	userModel.notebooks.resize(2);
-	userModel.notebooks.at(0).name = L"notebook-0";
-	userModel.notebooks.at(1).name = L"notebook-1";
-
-	syncModel.SignalNotebooksChanged();
-
-	BOOST_CHECK_EQUAL(noteListView.syncText, L"2");
-
-	BOOST_CHECK_EQUAL(noteListView.notebookMenu.size(), 2);
-	BOOST_CHECK_EQUAL(noteListView.notebookMenu.at(0).name, L"notebook-0");
-	BOOST_CHECK_EQUAL(noteListView.notebookMenu.at(1).name, L"notebook-1");
 }
 
 BOOST_FIXTURE_TEST_CASE
@@ -209,43 +183,50 @@ BOOST_FIXTURE_TEST_CASE
 }
 
 BOOST_FIXTURE_TEST_CASE
-	( NoteListPresenter_NotebookTitle
+	( NoteListPresenter_RequestNotebookTitle
 	, NoteListPresenterFixture
 	)
 {
-	noteListModel.notebookTitleState = false;
+	noteListView.requestedNotebookTitleState = true;
 
 	noteListView.isNotebookTitleVisible = false;
-	noteListView.isNotebookTitleEnabled = false;
 
-	noteListView.SignalNotebookTitle();
+	noteListView.SignalNotebookTitleStateChanged();
 
 	BOOST_CHECK(noteListModel.notebookTitleState);
 	BOOST_CHECK(noteListView.isNotebookTitleVisible);
-	BOOST_CHECK(noteListView.isNotebookTitleEnabled);
 
-	noteListView.SignalNotebookTitle();
+	noteListView.requestedNotebookTitleState = false;
+
+	noteListView.SignalNotebookTitleStateChanged();
 
 	BOOST_CHECK(!noteListModel.notebookTitleState);
 	BOOST_CHECK(!noteListView.isNotebookTitleVisible);
-	BOOST_CHECK(!noteListView.isNotebookTitleEnabled);
 }
 
 BOOST_FIXTURE_TEST_CASE
-	( NoteListPresenter_NotesChanged
+	( NoteListPresenter_RequestViewStyle
 	, NoteListPresenterFixture
 	)
 {
-	userModel.notes.push_back(Note());
-	userModel.notes.back().isDirty = true;
-	userModel.notes.push_back(Note());
-	userModel.notes.back().isDirty = true;
+	noteListView.requestedViewStyle = NotebookViewTitles;
 
-	syncModel.SignalNotesChanged();
+	noteListModel.viewStyle = NotebookViewCombined;
+	noteListView.viewStyle  = NotebookViewCombined;
 
-	BOOST_CHECK_EQUAL(noteListView.syncText, L"2");
+	noteListView.SignalViewStyleChanged();
 
-	BOOST_CHECK(noteListModel.isReloaded);
+	BOOST_CHECK_EQUAL(noteListModel.pageSize,  30u);
+	BOOST_CHECK_EQUAL(noteListModel.viewStyle, NotebookViewTitles);
+	BOOST_CHECK_EQUAL(noteListView.viewStyle,  NotebookViewTitles);
+
+	noteListView.requestedViewStyle = NotebookViewCombined;
+
+	noteListView.SignalViewStyleChanged();
+
+	BOOST_CHECK_EQUAL(noteListModel.pageSize,  20u);
+	BOOST_CHECK_EQUAL(noteListModel.viewStyle, NotebookViewCombined);
+	BOOST_CHECK_EQUAL(noteListView.viewStyle,  NotebookViewCombined);
 }
 
 BOOST_FIXTURE_TEST_CASE
@@ -282,22 +263,6 @@ BOOST_FIXTURE_TEST_CASE
 	BOOST_CHECK_EQUAL(noteListView.notebookMenu.at(1).name, L"notebook-1");
 
 	BOOST_CHECK(noteListView.isSyncEnabled);
-}
-
-BOOST_FIXTURE_TEST_CASE
-	( NoteListPresenter_TagsChanged
-	, NoteListPresenterFixture
-	)
-{
-	userModel.notes.push_back(Note());
-	userModel.notes.back().isDirty = true;
-
-	userModel.notes.push_back(Note());
-	userModel.notes.back().isDirty = true;
-
-	syncModel.SignalTagsChanged();
-
-	BOOST_CHECK_EQUAL(noteListView.syncText, L"2");
 }
 
 BOOST_FIXTURE_TEST_CASE

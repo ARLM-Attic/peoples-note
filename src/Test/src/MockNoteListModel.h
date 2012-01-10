@@ -1,15 +1,20 @@
 #pragma once
-
 #include "INoteListModel.h"
+
 #include "Note.h"
 
 class MockNoteListModel : public INoteListModel
 {
+	MacroTestEvent(NoteChanged)
+	MacroTestEvent(NoteListChanged)
 public:
 
-	NoteList     notes;
-	std::wstring query;
+	NoteList          notes;
+	size_t            pageSize;
+	std::wstring      query;
+	NotebookViewStyle viewStyle;
 
+	bool gotNotifiedOfNoteChange;
 	bool hasNextPage;
 	bool hasPreviousPage;
 	bool isReloaded;
@@ -17,13 +22,9 @@ public:
 	bool nextPageSelected;
 	bool previousPageSelected;
 
-	signal SignalChanged;
-
 public:
 
 	MockNoteListModel();
-
-	virtual void ConnectChanged(slot_type OnReset);
 
 	virtual void GetCurrentPage
 		( NoteList & notes
@@ -33,6 +34,10 @@ public:
 
 	virtual bool GetNotebookTitleState();
 
+	virtual NotebookViewStyle GetViewStyle();
+
+	virtual void NotifyOfNoteChange();
+
 	virtual void Reload();
 
 	virtual void SelectNextPage();
@@ -41,5 +46,9 @@ public:
 
 	virtual void SetNotebookTitleState(bool isEnabled);
 
+	virtual void SetPageSize(size_t pageSize);
+
 	virtual void SetQuery(const std::wstring & query);
+
+	virtual void SetViewStyle(NotebookViewStyle style);
 };

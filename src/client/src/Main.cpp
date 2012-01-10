@@ -165,7 +165,7 @@ int WINAPI WinMain(HINSTANCE instance,
 		UserModel        syncUserModel (syncDataStore, deviceDocumentPath, flashCard);
 		VoiceEditorModel voiceEditorModel;
 
-		NoteListModel noteListModel(20, userModel, registryKey);
+		NoteListModel noteListModel(userModel, registryKey);
 		SyncModel     syncModel(enNoteTranslator, enService, messagePump, syncUserModel, logger);
 
 		HtmlDataLoader htmlDataLoader
@@ -307,7 +307,7 @@ int WINAPI WinMain(HINSTANCE instance,
 
 		return result;
 	}
-	catch(std::exception e)
+	catch(const std::exception & e)
 	{
 #ifdef _DEBUG
 		MessageBox

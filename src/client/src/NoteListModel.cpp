@@ -10,12 +10,11 @@ using namespace boost;
 using namespace std;
 
 NoteListModel::NoteListModel
-	( int            pageSize
-	, IUserModel   & userModel
+	( IUserModel   & userModel
 	, IRegistryKey & registryKey
 	)
-	: currentPage (0)
-	, pageSize    (pageSize)
+	: firstNote   (0)
+	, pageSize    (0)
 	, registryKey (registryKey)
 	, userModel   (userModel)
 {
@@ -32,8 +31,8 @@ void NoteListModel::GetCurrentPage
 	userModel.GetLastUsedNotebook(notebook);
 
 	// ask for one more note than necessary to tell whether there is another page
-	userModel.GetNotesBySearch(notebook.guid, query, currentPage * pageSize, pageSize + 1, notes);
-	hasPreviousPage = currentPage > 0;
+	userModel.GetNotesBySearch(notebook.guid, query, firstNote, pageSize + 1, notes);
+	hasPreviousPage = firstNote > 0;
 	hasNextPage     = notes.size() > pageSize;
 	if (hasNextPage)
 		notes.pop_back();
@@ -41,28 +40,41 @@ void NoteListModel::GetCurrentPage
 
 bool NoteListModel::GetNotebookTitleState()
 {
-	wstring state = registryKey.GetString(L"notebook title state", L"disabled");
+	wstring state(registryKey.GetString(L"notebook title state", L"disabled"));
 	return state == L"enabled";
+}
+
+NotebookViewStyle NoteListModel::GetViewStyle()
+{
+	wstring styleName(registryKey.GetString(L"notebook view style", L"combined"));
+	if (styleName == L"titles")
+		return NotebookViewTitles;
+	return NotebookViewCombined;
+}
+
+void NoteListModel::NotifyOfNoteChange()
+{
+	SignalNoteChanged();
 }
 
 void NoteListModel::Reload()
 {
-	currentPage = 0;
-	SignalChanged();
+	firstNote = 0;
+	SignalNoteListChanged();
 }
 
 void NoteListModel::SelectNextPage()
 {
-	++currentPage;
-	SignalChanged();
+	firstNote += pageSize;
+	SignalNoteListChanged();
 }
 
 void NoteListModel::SelectPreviousPage()
 {
-	if (currentPage <= 0)
+	firstNote -= pageSize;
+	if (firstNote < 0)
 		throw std::exception("Invalid call to NoteListModel::SelectPreviousPage.");
-	--currentPage;
-	SignalChanged();
+	SignalNoteListChanged();
 }
 
 void NoteListModel::SetNotebookTitleState(bool isEnabled)
@@ -76,4 +88,17 @@ void NoteListModel::SetNotebookTitleState(bool isEnabled)
 void NoteListModel::SetQuery(const wstring & query)
 {
 	this->query = query;
+}
+
+void NoteListModel::SetPageSize(size_t pageSize)
+{
+	this->pageSize = pageSize;
+}
+
+void NoteListModel::SetViewStyle(NotebookViewStyle style)
+{
+	const wchar_t * styleName(L"combined");
+	if (style == NotebookViewTitles)
+		styleName = L"titles";
+	registryKey.SetString(L"notebook view style", styleName);
 }

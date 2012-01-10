@@ -1,11 +1,13 @@
 #pragma once
-
 #include "ISignalProvider.h"
+
 #include "Note.h"
+#include "NotebookViewStyle.h"
 
 class INoteListModel : public ISignalProvider
 {
-	MacroIEvent(Changed)
+	MacroIEvent(NoteChanged)
+	MacroIEvent(NoteListChanged)
 
 public:
 
@@ -19,6 +21,10 @@ public:
 
 	virtual bool GetNotebookTitleState() = 0;
 
+	virtual NotebookViewStyle GetViewStyle() = 0;
+
+	virtual void NotifyOfNoteChange() = 0;
+
 	virtual void Reload() = 0;
 
 	virtual void SelectNextPage() = 0;
@@ -27,5 +33,9 @@ public:
 
 	virtual void SetNotebookTitleState(bool isEnabled) = 0;
 
+	virtual void SetPageSize(size_t pageSize) = 0;
+
 	virtual void SetQuery(const std::wstring & query) = 0;
+
+	virtual void SetViewStyle(NotebookViewStyle style) = 0;
 };

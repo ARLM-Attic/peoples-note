@@ -1210,6 +1210,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\NotebookViewStyle.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\NoteListGestureProcessor.h"
 				>
 			</File>
