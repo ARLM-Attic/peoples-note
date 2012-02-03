@@ -10,6 +10,12 @@
 #include <iterator>
 #include <memory>
 
+#pragma warning(push)
+#pragma warning(disable:4996)
+#include <boost/xpressive/xpressive.hpp>
+#pragma warning(pop)
+
+using namespace boost::xpressive;
 using namespace rapidxml;
 using namespace std;
 
@@ -19,6 +25,8 @@ using namespace std;
 
 EnNoteTranslator::EnNoteTranslator()
 {
+	editTransforms[L"en-todo"] = &EnNoteTranslator::ReplaceEditTodo;
+
 	htmlTransforms[L"div"]   = &EnNoteTranslator::ReplaceDiv;
 	htmlTransforms[L"img"]   = &EnNoteTranslator::ReplaceImg;
 	htmlTransforms[L"input"] = &EnNoteTranslator::ReplaceCheckbox;
@@ -30,19 +38,44 @@ EnNoteTranslator::EnNoteTranslator()
 	xmlTransforms[L"en-todo"]  = &EnNoteTranslator::ReplaceTodo;
 }
 
+void EnNoteTranslator::ApplyXmlModifications
+	( wstring         srcXml
+	, wstring       & dstXml
+	, std::set<int> & dirtyCheckboxIds)
+{
+	typedef xml_document<wchar_t> XmlDocument;
+	auto_ptr<XmlDocument> doc(new XmlDocument());
+	doc->parse<parse_non_destructive>(&srcXml[0]);
+
+	checkboxId = 0;
+
+	this->dirtyCheckboxIds.clear();
+	this->dirtyCheckboxIds.insert(dirtyCheckboxIds.begin(), dirtyCheckboxIds.end());
+
+	ProcessNode(doc.get(), doc.get(), editTransforms, false);
+
+	dstXml =
+		L"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+		L"<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">\n";
+	rapidxml::print(back_inserter(dstXml), *doc, print_no_indenting | print_no_char_expansion);
+}
+
 void EnNoteTranslator::ConvertToHtml
 	( wstring   xml
 	, wstring & html
+	, bool      linkify
 	)
 {
 	typedef xml_document<wchar_t> XmlDocument;
 	auto_ptr<XmlDocument> doc(new XmlDocument());
 	doc->parse<parse_non_destructive>(&xml[0]);
 
-	ProcessNode(doc.get(), doc.get(), xmlTransforms);
+	checkboxId = 0;
+
+	ProcessNode(doc.get(), doc.get(), xmlTransforms, linkify);
 
 	html.clear();
-	print(back_inserter(html), *doc, print_no_indenting | print_no_char_expansion);
+	rapidxml::print(back_inserter(html), *doc, print_no_indenting | print_no_char_expansion);
 	// apostropies and amperstands are escaped in XML, but not in HTML
 	Tools::ReplaceAll(html, L"&apos;", L"'");
 }
@@ -114,14 +147,14 @@ void EnNoteTranslator::ConvertToXml
 	auto_ptr<XmlDocument> doc(new XmlDocument());
 	doc->parse<parse_non_destructive>(&html[0]);
 
-	ProcessNode(doc.get(), doc.get(), htmlTransforms);
+	ProcessNode(doc.get(), doc.get(), htmlTransforms, false);
 	DeleteNode(doc.get(), doc.get(), doc->first_node());
 	SetRootToEnNote(doc.get());
 
 	xml =
 		L"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 		L"<!DOCTYPE en-note SYSTEM \"http://xml.evernote.com/pub/enml2.dtd\">\n";
-	print(back_inserter(xml), *doc, print_no_indenting | print_no_char_expansion);
+	rapidxml::print(back_inserter(xml), *doc, print_no_indenting | print_no_char_expansion);
 }
 
 //------------------
@@ -228,10 +261,98 @@ void EnNoteTranslator::GetXmlAttributes
 	}
 }
 
+void EnNoteTranslator::ProcessDataNode
+	( rapidxml::memory_pool<wchar_t> * store
+	, rapidxml::xml_node<wchar_t>    * parent
+	, rapidxml::xml_node<wchar_t>    * child
+	)
+{
+	const int phoneNumberMinimumDigits(5);
+	if (child->value_size() < phoneNumberMinimumDigits)
+		return;
+
+	// Based on the format used by Android's text.util.Linkify.
+	// The pattern matches the following:
+	// * Optionally, a + sign followed immediately by one or more digits.
+	//   Spaces, dots, or dashes may follow.
+	// * Optionally, sets of digits in parentheses, separated by spaces,
+	//   dots, or dashes.
+	// * A string starting and ending with a digit, containing digits,
+	//   spaces, dots, and/or dashes.
+	wcregex expression = wcregex::compile
+		(                            // sdd = space, dot, or dash
+		L"(?:\\+\\d+[\\-\\. ]*)?"    // +<digits><sdd>*
+		L"(?:\\(\\d+\\)[\\-\\. ]*)?" // (<digits>)<sdd>*
+		L"\\d[\\d\\-\\. ]+"          // <digit><digit|sdd>+
+		);
+	const wchar_t * begin (child->value());
+	const wchar_t * end   (child->value() + child->value_size());
+
+	bool hasMatches(false);
+	const wchar_t * first(begin);
+	foreach_ (const wcmatch & matches, wcregex_iterator(begin, end, expression), wcregex_iterator())
+	{
+		const wcsub_match & match(*matches.begin());
+
+		// reject numbers with fewer than 5 digits
+		if (count_if(match.first, match.second, iswdigit) < phoneNumberMinimumDigits)
+			continue;
+
+		hasMatches = true;
+
+		// the regular expression matches numbers ending in non-digits
+		// strip trailing non-digits
+		typedef reverse_iterator<const wchar_t *> riter;
+		const wchar_t * matchBegin (match.first);
+		const wchar_t * matchEnd   (find_if(riter(match.second), riter(match.first), iswdigit).base());
+
+		// add text preceding the phone number as usual
+		if (first != matchBegin)
+		{
+			parent->insert_node
+				( child
+				, store->allocate_node(node_data, L"", first, 0, matchBegin - first)
+				);
+		}
+
+		// prepend "tel:" to url, automatically recognized by WinCE
+		wstring url(L"tel:");
+		url.append(matchBegin, matchEnd - matchBegin);
+
+		// add a phone link
+		xml_node<wchar_t> * linkNode = store->allocate_node
+				(node_element, L"a", matchBegin, 0, matchEnd - matchBegin);
+		linkNode->append_attribute
+			( store->allocate_attribute
+				( L"href"
+				, store->allocate_string(url.c_str(), url.size())
+				, 0
+				, url.size()
+				)
+			);
+		parent->insert_node(child, linkNode);
+
+		first = matchEnd;
+	}
+	if (hasMatches)
+	{
+		// append trailing text and remove the original node
+		if (first != end)
+		{
+			parent->insert_node
+				( child
+				, store->allocate_node(node_data, L"", first, 0, end - first)
+				);
+		}
+		parent->remove_node(child);
+	}
+}
+
 void EnNoteTranslator::ProcessNode
 	( memory_pool<wchar_t> * store
 	, xml_node<wchar_t>    * node
 	, TransformMap         & transforms
+	, bool                   linkify
 	)
 {
 	xml_node<wchar_t> * child(node->first_node());
@@ -239,13 +360,20 @@ void EnNoteTranslator::ProcessNode
 	{
 		xml_node<wchar_t> * sibling(child->next_sibling());
 
-		ProcessNode(store, child, transforms);
+		ProcessNode(store, child, transforms, linkify);
 
 		wstring name(child->name(), child->name_size());
-
-		TransformMap::const_iterator transform(transforms.find(name));
-		if (transform != transforms.end())
-			(*transform->second)(store, node, child);
+		if (child->type() == node_data)
+		{
+			if (linkify)
+				ProcessDataNode(store, node, child);
+		}
+		else
+		{
+			TransformMap::const_iterator transform(transforms.find(name));
+			if (transform != transforms.end())
+				(this->*transform->second)(store, node, child);
+		}
 
 		child = sibling;
 	}
@@ -482,8 +610,28 @@ void EnNoteTranslator::ReplaceTodo
 	if (checked)
 		node->append_attribute(store->allocate_attribute(L"checked", L"true"));
 
+	wchar_t checkboxIdStr[10];
+	_itow(checkboxId, checkboxIdStr, 10);
+	node->append_attribute
+		(store->allocate_attribute(L"uid", store->allocate_string(checkboxIdStr)));
+	++checkboxId;
+
 	parent->insert_node(child, node);
 	parent->remove_node(child);
+}
+
+void EnNoteTranslator::ReplaceEditTodo
+	( memory_pool<wchar_t> * store
+	, xml_node<wchar_t>    * parent
+	, xml_node<wchar_t>    * child
+	)
+{
+	xml_attribute<wchar_t> * attribute = child->first_attribute(L"checked");
+	bool checked(attribute && wstring(attribute->value(), attribute->value_size()) == L"true");
+
+	if (dirtyCheckboxIds.find(checkboxId) != dirtyCheckboxIds.end())
+		attribute->value(checked ? L"false" : L"true");
+	++checkboxId;
 }
 
 void EnNoteTranslator::SetRootToEnNote(xml_document<wchar_t> * doc)

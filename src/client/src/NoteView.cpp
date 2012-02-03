@@ -31,7 +31,6 @@ NoteView::NoteView
 	, IHtmlDataLoader & htmlDataLoader
 	)
 	: instance         (instance)
-	, isDirty          (false)
 	, isMaximized      (false)
 	, gestureProcessor (animator)
 	, parent           (NULL)
@@ -65,7 +64,7 @@ void NoteView::RegisterEventHandlers()
 // INoteView implementation
 //-------------------------
 
-static void CALLBACK _writer_a(LPCBYTE utf8, UINT utf8_length, LPVOID param)
+static void CALLBACK WriteHtml(LPCBYTE utf8, UINT utf8_length, LPVOID param)
 {
 	wstring * dst(reinterpret_cast<wstring*>(param));
 	ConvertToUnicode(utf8, *dst);
@@ -73,11 +72,17 @@ static void CALLBACK _writer_a(LPCBYTE utf8, UINT utf8_length, LPVOID param)
 
 void NoteView::GetBody(wstring & html)
 {
+	const bool outerHtml(false);
 	HTMLayoutGetElementHtmlCB
-		( FindFirstElement("#body") // he
-		, false                     // outer
-		, _writer_a                 // cb
-		, &html                     // cb_param
+		(FindFirstElement("#body"), outerHtml, &WriteHtml, &html);
+}
+
+void NoteView::GetDirtyCheckboxIds(set<int> & dirtyCheckboxIds)
+{
+	dirtyCheckboxIds.clear();
+	dirtyCheckboxIds.insert
+		( this->dirtyCheckboxIds.begin()
+		, this->dirtyCheckboxIds.end()
 		);
 }
 
@@ -137,14 +142,14 @@ void NoteView::Hide()
 	::ShowWindow(hwnd_,   SW_HIDE);
 	::ShowWindow(menuBar, SW_HIDE);
 
-	Reset();
-
 	SignalClose();
+
+	Reset();
 }
 
 bool NoteView::IsDirty()
 {
-	return isDirty;
+	return !dirtyCheckboxIds.empty();
 }
 
 bool NoteView::IsMaximized()
@@ -185,7 +190,7 @@ void NoteView::SetNote
 	, const bool                     enableChrome
 	)
 {
-	isDirty = false;
+	dirtyCheckboxIds.clear();
 
 	this->note = note;
 
@@ -562,10 +567,10 @@ void NoteView::OnAttachment(BEHAVIOR_EVENT_PARAMS * params)
 void NoteView::OnInput(BEHAVIOR_EVENT_PARAMS * params)
 {
 	element e(params->heTarget);
-	if (e.get_value().get(false))
-		e.set_attribute("checked", L"true");
+	int id(e.get_attribute_int("uid", -1));
+	set<int>::iterator i(dirtyCheckboxIds.find(id));
+	if (i == dirtyCheckboxIds.end())
+		dirtyCheckboxIds.insert(id);
 	else
-		e.remove_attribute("checked");
-	note.isDirty = true;
-	isDirty      = true;
+		dirtyCheckboxIds.erase(i);
 }
