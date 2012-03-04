@@ -237,7 +237,7 @@ FIXTURE_TEST_CASE(UserModelAddNotebook, DataStoreFixture)
 	TEST_CHECK_EQUAL(userModel.GetNotebookCount(), 2);
 }
 
-FIXTURE_TEST_CASE(UserModelAttahcments, DataStoreFixture)
+FIXTURE_TEST_CASE(UserModelAttachments, DataStoreFixture)
 {
 	Notebook notebook;
 	userModel.GetDefaultNotebook(notebook);
@@ -346,7 +346,7 @@ FIXTURE_TEST_CASE(UserModelDeleteNote, DataStoreFixture)
 	userModel.DeleteNote(note2.guid);
 
 	NoteList notes;
-	userModel.GetNotesByNotebook(notebook.guid, notes);
+	userModel.GetNotes(notebook.guid, L"", 0, 0, notes);
 	TEST_CHECK_EQUAL(notes.size(), 1);
 	TEST_CHECK_EQUAL(notes.at(0).guid, note1.guid);
 
@@ -366,7 +366,7 @@ FIXTURE_TEST_CASE(UserModelExpungeNote, DataStoreFixture)
 	userModel.ExpungeNote(note.guid);
 	
 	NoteList notes;
-	userModel.GetNotesByNotebook(notebook.guid, notes);
+	userModel.GetNotes(notebook.guid, L"", 0, 0, notes);
 	TEST_CHECK(notes.empty());
 }
 
@@ -443,6 +443,17 @@ FIXTURE_TEST_CASE(UserModelNoteForeignKey, DataStoreFixture)
 		, std::exception
 		, MESSAGE_EQUALS("foreign key constraint failed")
 		);
+}
+
+FIXTURE_TEST_CASE(UserModelAllNotebooksState, DataStoreFixture)
+{
+	TEST_CHECK_EQUAL(userModel.GetAllNotebooksState(), false);
+
+	userModel.SetAllNotebooksState(true);
+	TEST_CHECK_EQUAL(userModel.GetAllNotebooksState(), true);
+
+	userModel.SetAllNotebooksState(false);
+	TEST_CHECK_EQUAL(userModel.GetAllNotebooksState(), false);
 }
 
 FIXTURE_TEST_CASE(UserModelDefaultNotebook, DataStoreFixture)
@@ -541,7 +552,7 @@ FIXTURE_TEST_CASE(UserModelReplacement, DataStoreFixture)
 	userModel.AddNote(note1, L"", L"", notebook1);
 
 	NoteList notes;
-	userModel.GetNotesByNotebook(notebook1.guid, notes);
+	userModel.GetNotes(notebook1.guid, L"", 0, 0, notes);
 	TEST_CHECK_EQUAL(notes.size(), 1);
 	TEST_CHECK_EQUAL(notes.at(0).name, L"note-1");
 
@@ -812,7 +823,7 @@ FIXTURE_TEST_CASE(UserModelNotesByNotebook, DataStoreFixture)
 		);
 
 	NoteList notes;
-	userModel.GetNotesByNotebook(notebooks.at(0).guid, notes);
+	userModel.GetNotes(notebooks.at(0).guid, L"", 0, 0, notes);
 	TEST_CHECK_EQUAL(notes.size(), 2);
 	TEST_CHECK_EQUAL(notes.at(0).name, L"note-0");
 	TEST_CHECK_EQUAL(notes.at(1).name, L"note-2");
@@ -840,22 +851,25 @@ FIXTURE_TEST_CASE(UserModelGetNotesBySearch1, DataStoreFixture)
 		);
 
 	NoteList notes;
-	userModel.GetNotesBySearch(notebook.guid, L"software", 0, 0, notes);
+	userModel.GetNotes(notebook.guid, L"software", 0, 0, notes);
 	TEST_CHECK_EQUAL(notes.size(), 2);
 	TEST_CHECK_EQUAL(notes.at(0).name, L"software use");
 	TEST_CHECK_EQUAL(notes.at(1).name, L"useful software");
 
 	notes.clear();
-	userModel.GetNotesBySearch(notebook.guid, L"use", 0, 0, notes);
+	userModel.GetNotes(notebook.guid, L"use", 0, 0, notes);
 	TEST_CHECK_EQUAL(notes.size(), 1);
 	TEST_CHECK_EQUAL(notes.at(0).name, L"software use");
 }
 
 FIXTURE_TEST_CASE(UserModelGetNotesBySearch2, DataStoreFixture)
 {
-	Notebook notebook;
-	notebook.name = L"notebook";
-	userModel.AddNotebook(notebook);
+	vector<Notebook> notebooks(2);
+	notebooks[0].name = L"notebook0";
+	notebooks[1].name = L"notebook1";
+	notebooks[1].guid = Guid();
+	foreach (const Notebook & notebook, notebooks)
+		userModel.AddNotebook(notebook);
 
 	wstring empty;
 
@@ -863,16 +877,24 @@ FIXTURE_TEST_CASE(UserModelGetNotesBySearch2, DataStoreFixture)
 		( MakeNote(L"Ангара", 0)
 		, empty
 		, L"Восточный"
-		, notebook
+		, notebooks[0]
+		);
+	userModel.AddNote
+		( MakeNote(L"Ангара", 0)
+		, empty
+		, L"Восточный"
+		, notebooks[1]
 		);
 
 	NoteList notes;
-	userModel.GetNotesBySearch(notebook.guid, L"ангара", 0, 0, notes);
+	userModel.GetNotes(notebooks[0].guid, L"ангара", 0, 0, notes);
 	TEST_CHECK_EQUAL(notes.size(), 1);
 
-	notes.clear();
-	userModel.GetNotesBySearch(notebook.guid, L"восточный", 0, 0, notes);
+	userModel.GetNotes(notebooks[0].guid, L"восточный", 0, 0, notes);
 	TEST_CHECK_EQUAL(notes.size(), 1);
+
+	userModel.GetNotes(Guid::GetEmpty(), L"восточный", 0, 0, notes);
+	TEST_CHECK_EQUAL(notes.size(), 2);
 }
 
 FIXTURE_TEST_CASE(UserModelTags, DataStoreFixture)
@@ -970,7 +992,7 @@ FIXTURE_TEST_CASE(UserModelUpdateNote, DataStoreFixture)
 	userModel.AddNote(note, L"", L"", notebook);
 
 	NoteList notes;
-	userModel.GetNotesByNotebook(notebook.guid, notes);
+	userModel.GetNotes(notebook.guid, L"", 0, 0, notes);
 	TEST_CHECK_EQUAL(notes.size(), 1);
 	TestNoteEquality(notes.at(0), note);
 
@@ -998,7 +1020,7 @@ FIXTURE_TEST_CASE(UserModelUpdateNote, DataStoreFixture)
 	note.Location.Longitude = 0;
 
 	notes.clear();
-	userModel.GetNotesByNotebook(notebook.guid, notes);
+	userModel.GetNotes(notebook.guid, L"", 0, 0, notes);
 	TEST_CHECK_EQUAL(notes.size(), 1);
 	TestNoteEquality(notes.at(0), note);
 }
@@ -1038,7 +1060,7 @@ FIXTURE_TEST_CASE(UserModelUpdateNotebook, DataStoreFixture)
 	TEST_CHECK_EQUAL(lastUsedNotebook.guid, replacementNotebook.guid);
 
 	NoteList notes;
-	userModel.GetNotesByNotebook(replacementNotebook.guid, notes);
+	userModel.GetNotes(replacementNotebook.guid, L"", 0, 0, notes);
 
 	TEST_CHECK_EQUAL(notes.size(), 1);
 	TEST_CHECK_EQUAL(notes.at(0).name, L"note-0");

@@ -1,7 +1,8 @@
 #pragma once
 #include "IUserModel.h"
 
-class IDataStore;
+#include "IDataStore.h"
+
 class IFlashCard;
 
 class UserModel : public IUserModel
@@ -46,7 +47,7 @@ public:
 		( const Note          & note
 		, const std::wstring  & body
 		, const std::wstring  & bodyText
-		, const Notebook      & notebook
+		, const Guid          & notebook
 		);
 
 	virtual void AddNotebook(const Notebook & notebook);
@@ -84,15 +85,17 @@ public:
 
 	virtual std::wstring GetUsername();
 
-	virtual void GetDefaultNotebook(Notebook & notebook);
+	virtual void GetDefaultNotebook(Guid & notebook);
 
 	virtual void GetDeletedNotes(GuidList & notes);
 
-	virtual int GetDirtyNoteCount(const Notebook & notebook);
+	virtual int GetDirtyNoteCount(const Guid & notebook);
 
 	virtual __int64 GetLastSyncEnTime();
 
-	virtual void GetLastUsedNotebook(Notebook & notebook);
+	virtual void GetLastUsedNotebook(Guid & notebook);
+
+	virtual void GetLastUsedNotebookOrDefault(Guid & notebook);
 
 	virtual DbLocation GetLocation();
 
@@ -132,24 +135,12 @@ public:
 
 	virtual int GetNotebookUpdateCount(const Guid & notebook);
 
-	virtual void GetNotesByNotebook
-		( const Guid & notebook
-		, NoteList   & notes
-		);
-
-	virtual void GetNotesByNotebook
-		( const Guid & notebook
-		, int          start
-		, int          count
-		, NoteList   & notes
-		);
-
-	virtual void GetNotesBySearch
-		( const Guid         & notebook
-		, const std::wstring & search
-		, int                  start
-		, int                  count
-		, NoteList           & notes
+	virtual void GetNotes
+		( Guid           notebook // leave empty, if not used
+		, std::wstring   search   // leave empty, if not used
+		, int            start    // set count to 0, if not used
+		, int            count    // set to 0, if not used
+		, NoteList     & notes
 		);
 
 	virtual std::wstring GetPath();
@@ -197,7 +188,7 @@ public:
 		( const Note          & note
 		, const std::wstring  & body
 		, const std::wstring  & bodyText
-		, const Notebook      & notebook
+		, const Guid          & notebook
 		);
 
 	virtual void SetCredentials
@@ -257,7 +248,9 @@ private:
 		, const std::wstring & name
 		);
 
-	void GetFirstNotebook(Notebook & notebook);
+	void GetNotes(int start, int count, NoteList & notes);
+
+	void GetNotes(IDataStore::Statement & statement, NoteList & notes);
 
 	template<typename T>
 	void GetProperty(const std::wstring & name, T & value);
@@ -300,9 +293,9 @@ void UserModel::GetProperty(const std::wstring & key, T & value)
 		"  WHERE key = ?"
 		"  LIMIT 1"
 		);
-	statement->Bind(1, key);
+	statement->Bind(key);
 	if (!statement->Execute())
-		statement->Get(0, value);
+		statement->Get(value);
 }
 
 template <typename T>
@@ -311,7 +304,7 @@ void UserModel::SetProperty(const std::wstring & key, const T & value)
 	IDataStore::Statement statement = dataStore.MakeStatement
 		( "INSERT OR REPLACE INTO Properties VALUES (?, ?)"
 		);
-	statement->Bind(1, key);
-	statement->Bind(2, value);
+	statement->Bind(key);
+	statement->Bind(value);
 	statement->Execute();
 }

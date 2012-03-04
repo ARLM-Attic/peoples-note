@@ -1,7 +1,7 @@
 #pragma once
 #include "IUserModel.h"
 
-#include "MockCredentialsModel.h"
+#include "ICredentialsModel.h"
 #include "Note.h"
 #include "Notebook.h"
 
@@ -18,7 +18,7 @@ public:
 			( const Note         & note
 			, const std::wstring & body
 			, const std::wstring & bodyText
-			, const Notebook     & notebook
+			, const Guid         & notebook
 			)
 			: note     (note)
 			, body     (body)
@@ -29,7 +29,7 @@ public:
 		Note         note;
 		std::wstring body;
 		std::wstring bodyText;
-		Notebook     notebook;
+		Guid         notebook;
 	};
 
 	enum LoadMethod
@@ -106,7 +106,7 @@ public:
 		( const Note          & note
 		, const std::wstring  & body
 		, const std::wstring  & bodyText
-		, const Notebook      & notebook
+		, const Guid          & notebook
 		);
 
 	virtual void AddNotebook(const Notebook & notebook);
@@ -142,17 +142,19 @@ public:
 
 	virtual void ExpungeTag(const Guid & tag);
 
-	virtual void GetDefaultNotebook(Notebook & notebook);
+	virtual void GetDefaultNotebook(Guid & notebook);
 
 	virtual void GetDeletedNotes(GuidList & notes);
 
-	virtual int GetDirtyNoteCount(const Notebook & notebook);
+	virtual int GetDirtyNoteCount(const Guid & notebook);
 
 	virtual std::wstring GetFolder();
 
 	virtual __int64 GetLastSyncEnTime();
 
-	virtual void GetLastUsedNotebook(Notebook & notebook);
+	virtual void GetLastUsedNotebook(Guid & notebook);
+
+	virtual void GetLastUsedNotebookOrDefault(Guid & notebook);
 
 	virtual DbLocation GetLocation();
 
@@ -192,24 +194,12 @@ public:
 
 	virtual int GetNotebookUpdateCount(const Guid & notebook);
 
-	virtual void GetNotesByNotebook
-		( const Guid & notebook
-		, NoteList   & notes
-		);
-
-	virtual void GetNotesByNotebook
-		( const Guid & notebook
-		, int          start
-		, int          count
-		, NoteList   & notes
-		);
-
-	virtual void GetNotesBySearch
-		( const Guid         & notebook
-		, const std::wstring & search
-		, int                  start
-		, int                  count
-		, NoteList           & notes
+	virtual void GetNotes
+		( Guid           notebook // leave empty, if not used
+		, std::wstring   search   // leave empty, if not used
+		, int            start    // set count to 0, if not used
+		, int            count    // set to 0, if not used
+		, NoteList     & notes
 		);
 
 	virtual std::wstring GetPath();
@@ -261,7 +251,7 @@ public:
 		( const Note          & note
 		, const std::wstring  & body
 		, const std::wstring  & bodyText
-		, const Notebook      & notebook
+		, const Guid          & notebook
 		);
 
 	virtual void SetCredentials

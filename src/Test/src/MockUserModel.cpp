@@ -7,12 +7,12 @@ using namespace boost;
 using namespace std;
 
 MockUserModel::MockUserModel()
-	: isInTransaction  (false)
-	, loadCount        (0)
-	, loadMethod       (LoadMethodNone)
-	, location         (DbLocationNone)
-	, path             (L"card-path")
-	, size             (42)
+	: isInTransaction   (false)
+	, loadCount         (0)
+	, loadMethod        (LoadMethodNone)
+	, location          (DbLocationNone)
+	, path              (L"card-path")
+	, size              (42)
 {
 }
 
@@ -20,7 +20,7 @@ void MockUserModel::AddNote
 	( const Note     & note
 	, const wstring  & body
 	, const wstring  & bodyText
-	, const Notebook & notebook
+	, const Guid     & notebook
 	)
 {
 	addedNotes.push_back(NoteRecord(note, body, bodyText, notebook));
@@ -114,10 +114,10 @@ void MockUserModel::ExpungeTag(const Guid & tag)
 	expungedTags.push_back(tag);
 }
 
-void MockUserModel::GetDefaultNotebook(Notebook & notebook)
+
+void MockUserModel::GetDefaultNotebook(Guid & notebook)
 {
-	notebook.guid = defaultNotebook;
-	notebook.name = L"default-notebook";
+	notebook = defaultNotebook;
 }
 
 void MockUserModel::GetDeletedNotes(GuidList & notes)
@@ -130,7 +130,7 @@ void MockUserModel::GetDeletedNotes(GuidList & notes)
 		);
 }
 
-int MockUserModel::GetDirtyNoteCount(const Notebook & notebook)
+int MockUserModel::GetDirtyNoteCount(const Guid & notebook)
 {
 	int count(0);
 	foreach (const Note & note, notes)
@@ -151,10 +151,17 @@ __int64 MockUserModel::GetLastSyncEnTime()
 	return lastSyncEnTime;
 }
 
-void MockUserModel::GetLastUsedNotebook(Notebook & notebook)
+void MockUserModel::GetLastUsedNotebook(Guid & notebook)
 {
-	notebook.guid = lastUsedNotebook;
-	notebook.name = L"last-used-notebook";
+	notebook = lastUsedNotebook;
+}
+
+void MockUserModel::GetLastUsedNotebookOrDefault(Guid & notebook)
+{
+	notebook
+		= lastUsedNotebook.IsEmpty()
+		? defaultNotebook
+		: lastUsedNotebook;
 }
 
 DbLocation MockUserModel::GetLocation()
@@ -242,6 +249,18 @@ void MockUserModel::GetNotebook
 	, Notebook   & notebook
 	)
 {
+	if (guid == defaultNotebook)
+	{
+		notebook.name = L"default-notebook";
+		notebook.guid = defaultNotebook;
+		return;
+	}
+	if (guid == lastUsedNotebook)
+	{
+		notebook.name = L"last-used-notebook";
+		notebook.guid = lastUsedNotebook;
+		return;
+	}
 	foreach (const Notebook & n, notebooks)
 	{
 		if (n.guid == guid)
@@ -266,44 +285,28 @@ int MockUserModel::GetNotebookUpdateCount(const Guid & notebook)
 	return notebookUpdateCounts[notebook];
 }
 
-void MockUserModel::GetNotesByNotebook
-	( const Guid & notebook
-	, NoteList   & notes
+void MockUserModel::GetNotes
+	( Guid       notebook // leave empty, if not used
+	, wstring    search   // leave empty, if not used
+	, int        start    // set count to 0, if not used
+	, int        count    // set to 0, if not used
+	, NoteList & notes
 	)
 {
 	notebookSelection = notebook;
-	notes.assign(this->notes.begin(), this->notes.end());
-}
-
-void MockUserModel::GetNotesByNotebook
-	( const Guid & notebook
-	, int          start
-	, int          count
-	, NoteList   & notes
-	)
-{
-	notebookSelection = notebook;
-	size_t finish(min(this->notes.size(), static_cast<size_t>(start + count)));
-	notes.assign
-		( this->notes.begin() + start
-		, this->notes.begin() + finish
-		);
-}
-
-void MockUserModel::GetNotesBySearch
-	( const Guid    & notebook
-	, const wstring & search
-	, int             start
-	, int             count
-	, NoteList      & notes
-	)
-{
-	searchSelection = search;
-	size_t finish(min(this->notes.size(), static_cast<size_t>(start + count)));
-	notes.assign
-		( this->notes.begin() + start
-		, this->notes.begin() + finish
-		);
+	searchSelection   = search;
+	if (count > 0)
+	{
+		size_t finish(min(this->notes.size(), static_cast<size_t>(start + count)));
+		notes.assign
+			( this->notes.begin() + start
+			, this->notes.begin() + finish
+			);
+	}
+	else
+	{
+		notes.assign(this->notes.begin(), this->notes.end());
+	}
 }
 
 void MockUserModel::GetNoteThumbnail
@@ -447,7 +450,7 @@ void MockUserModel::ReplaceNote
 	( const Note     & note
 	, const wstring  & body
 	, const wstring  & bodyText
-	, const Notebook & notebook
+	, const Guid     & notebook
 	)
 {
 	foreach (Note & n, notes)

@@ -22,7 +22,7 @@ public:
 		( const Note          & note
 		, const std::wstring  & body
 		, const std::wstring  & bodyText
-		, const Notebook      & notebook
+		, const Guid          & notebook
 		) = 0;
 
 	virtual void AddNotebook(const Notebook & notebook) = 0;
@@ -60,15 +60,17 @@ public:
 
 	virtual std::wstring GetUsername() = 0;
 
-	virtual void GetDefaultNotebook(Notebook & notebook) = 0;
+	virtual void GetDefaultNotebook(Guid & notebook) = 0;
 
 	virtual void GetDeletedNotes(GuidList & notes) = 0;
 
-	virtual int GetDirtyNoteCount(const Notebook & notebook) = 0;
+	virtual int GetDirtyNoteCount(const Guid & notebook) = 0;
 
 	virtual __int64 GetLastSyncEnTime() = 0;
 
-	virtual void GetLastUsedNotebook(Notebook & notebook) = 0;
+	virtual void GetLastUsedNotebook(Guid & notebook) = 0;
+
+	virtual void GetLastUsedNotebookOrDefault(Guid & notebook) = 0;
 
 	virtual DbLocation GetLocation() = 0;
 
@@ -108,24 +110,12 @@ public:
 
 	virtual int GetNotebookUpdateCount(const Guid & notebook) = 0;
 
-	virtual void GetNotesByNotebook
-		( const Guid & notebook
-		, NoteList   & notes
-		) = 0;
-
-	virtual void GetNotesByNotebook
-		( const Guid & notebook
-		, int          start
-		, int          count
-		, NoteList   & notes
-		) = 0;
-
-	virtual void GetNotesBySearch
-		( const Guid         & notebook
-		, const std::wstring & search
-		, int                  start
-		, int                  count
-		, NoteList           & notes
+	virtual void GetNotes
+		( Guid           notebook // leave empty, if not used
+		, std::wstring   search   // leave empty, if not used
+		, int            start    // set count to 0, if not used
+		, int            count    // set to 0, if not used
+		, NoteList     & notes
 		) = 0;
 
 	virtual std::wstring GetPath() = 0;
@@ -173,7 +163,7 @@ public:
 		( const Note          & note
 		, const std::wstring  & body
 		, const std::wstring  & bodyText
-		, const Notebook      & notebook
+		, const Guid          & notebook
 		) = 0;
 
 	virtual void SetCredentials

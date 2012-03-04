@@ -15,7 +15,7 @@ struct NoteProcessorFixture
 	EnNoteTranslator enNoteTranslator;
 	MockUserModel    userModel;
 	MockNoteStore    noteStore;
-	Notebook         notebook;
+	Guid             notebook;
 
 	NoteProcessor noteProcessor;
 
@@ -24,19 +24,18 @@ struct NoteProcessorFixture
 			( enNoteTranslator
 			, userModel
 			, noteStore
-			, notebook
 			)
+		, notebook("guid")
 	{
 	}
 };
 
 BOOST_FIXTURE_TEST_CASE(NoteProcessor_AddLocal_Test, NoteProcessorFixture)
 {
-	notebook.name = L"test-notebook";
-
-	EnInteropNote note;
-	note.note.guid = Guid("{0}");
-	note.note.name = L"test-note";
+	Note n;
+	n.guid = Guid("{0}");
+	n.name = L"test-note";
+	EnInteropNote note(n, notebook);
 	note.resources.push_back(Guid("{1}"));
 	note.resources.push_back(Guid("{2}"));
 
@@ -93,11 +92,10 @@ BOOST_FIXTURE_TEST_CASE(NoteProcessor_AddLocal_Test, NoteProcessorFixture)
 
 BOOST_FIXTURE_TEST_CASE(NoteProcessor_CreateRemote_Test, NoteProcessorFixture)
 {
-	notebook.name = L"test-notebook";
-
-	EnInteropNote note;
-	note.note.name = L"test-note";
-	note.note.guid = Guid("{0}");
+	Note n;
+	n.guid = Guid("{0}");
+	n.name = L"test-note";
+	EnInteropNote note(n, notebook);
 	note.resources.push_back(Guid("{1}"));
 	note.resources.push_back(Guid("{2}"));
 
@@ -119,8 +117,8 @@ BOOST_FIXTURE_TEST_CASE(NoteProcessor_CreateRemote_Test, NoteProcessorFixture)
 
 BOOST_FIXTURE_TEST_CASE(NoteProcessor_DeleteLocal_Test, NoteProcessorFixture)
 {
-	EnInteropNote note;
-	note.guid = note.note.guid;
+	Note n;
+	EnInteropNote note(n, notebook);
 
 	noteProcessor.DeleteLocal(note.guid);
 
@@ -130,12 +128,13 @@ BOOST_FIXTURE_TEST_CASE(NoteProcessor_DeleteLocal_Test, NoteProcessorFixture)
 
 BOOST_FIXTURE_TEST_CASE(NoteProcessor_MergeLocal_Test, NoteProcessorFixture)
 {
-	EnInteropNote local;
-	local.note.name = local.name = L"local-note";
+	Note localNote;
+	localNote.name = L"local-note";
+	EnInteropNote local(localNote, notebook);
 
-	EnInteropNote remote;
-	remote.guid = remote.note.guid;
-	remote.note.name = remote.name = L"remote-note";
+	Note remoteNote;
+	remoteNote.name = L"remote-note";
+	EnInteropNote remote(remoteNote, notebook);
 	remote.resources.push_back(Guid("{0}"));
 	remote.resources.push_back(Guid("{1}"));
 

@@ -39,6 +39,9 @@ NoteListPresenter::NoteListPresenter
 	noteListModel.ConnectNoteListChanged
 		(bind(&NoteListPresenter::OnNoteListChanged, this));
 
+	noteListView.ConnectAllNotebooksSelected
+		(bind(&NoteListPresenter::OnAllNotebooksSelected, this));
+
 	noteListView.ConnectNotebookSelected
 		(bind(&NoteListPresenter::OnNotebookSelected, this));
 
@@ -71,6 +74,16 @@ NoteListPresenter::NoteListPresenter
 //---------------
 // event handlers
 //---------------
+
+void NoteListPresenter::OnAllNotebooksSelected()
+{
+	Transaction transaction(userModel);
+	SelectAllNotebooks();
+	UpdateTitle();
+	ResetSearch();
+	noteListModel.Reload();
+	UpdateSyncCounter();
+}
 
 void NoteListPresenter::OnNoteChanged()
 {
@@ -199,6 +212,11 @@ void NoteListPresenter::ResetSearch()
 	noteListView.SetSearchButtonToSearch();
 }
 
+void NoteListPresenter::SelectAllNotebooks()
+{
+	userModel.MakeNotebookLastUsed(Guid::GetEmpty());
+}
+
 void NoteListPresenter::UpdateActiveNotebook()
 {
 	Notebook notebook;
@@ -226,10 +244,10 @@ void NoteListPresenter::UpdateNotebookTitle()
 
 void NoteListPresenter::UpdateSyncCounter()
 {
-	Notebook notebook;
-	userModel.GetLastUsedNotebook(notebook);
+	Guid notebookGuid("");
+	userModel.GetLastUsedNotebook(notebookGuid);
 
-	int noteCount(userModel.GetDirtyNoteCount(notebook));
+	int noteCount(userModel.GetDirtyNoteCount(notebookGuid));
 
 	int totalCount(noteCount);
 
@@ -240,11 +258,23 @@ void NoteListPresenter::UpdateSyncCounter()
 
 void NoteListPresenter::UpdateTitle()
 {
-	Notebook notebook;
-	userModel.GetLastUsedNotebook(notebook);
+	wstring name;
 
-	noteListView.SetWindowTitle(notebook.name);
-	noteView.SetWindowTitle(notebook.name);
+	Guid guid("");
+	userModel.GetLastUsedNotebook(guid);
+	if (guid.IsEmpty())
+	{
+		name = L"All notebooks";
+	}
+	else
+	{
+		Notebook notebook;
+		userModel.GetNotebook(guid, notebook);
+		name = notebook.name;
+	}
+
+	noteListView.SetWindowTitle(name);
+	noteView.SetWindowTitle(name);
 }
 
 void NoteListPresenter::UpdateViewStyle()
