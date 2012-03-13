@@ -45,6 +45,7 @@ struct NoteListPresenterFixture
 //-----------
 // test cases
 //-----------
+
 BOOST_FIXTURE_TEST_CASE
 	( NoteListPresenter_AllNotebooksSelected
 	, NoteListPresenterFixture
@@ -55,15 +56,36 @@ BOOST_FIXTURE_TEST_CASE
 	noteListView.searchText                = L"search text";
 	noteListModel.query                    = L"query";
 
-	noteListView.SignalAllNotebooksSelected();
+	userModel.notes.resize(2);
+	userModel.notes[0].isDirty = false;
+	userModel.notes[1].isDirty = true;
+
+	noteListView.selectedNotebookGuid = Guid::GetEmpty();
+	noteListView.SignalNotebookSelected();
 
 	BOOST_CHECK_EQUAL(userModel.lastUsedNotebook, Guid::GetEmpty());
 	BOOST_CHECK_EQUAL(noteListView.windowTitle,   L"All notebooks");
 	BOOST_CHECK_EQUAL(noteView.windowTitle,       L"All notebooks");
 	BOOST_CHECK_EQUAL(noteListView.searchText,    L"");
 	BOOST_CHECK_EQUAL(noteListModel.query,        L"");
+	BOOST_CHECK_EQUAL(noteListView.syncText,      L"1");
 
 	BOOST_CHECK(noteListView.isSearchButtonSetToSearch);
+	BOOST_CHECK(noteListModel.isReloaded);
+}
+
+BOOST_FIXTURE_TEST_CASE
+	( NoteListPresenter_DeleteNote
+	, NoteListPresenterFixture
+	)
+{
+	noteListModel.isReloaded = false;
+
+	noteListView.SignalDeleteNote();
+
+	BOOST_REQUIRE_EQUAL(userModel.deletedNotes.size(), 1);
+	BOOST_CHECK_EQUAL(userModel.deletedNotes[0], noteListView.selectedNoteGuid);
+
 	BOOST_CHECK(noteListModel.isReloaded);
 }
 

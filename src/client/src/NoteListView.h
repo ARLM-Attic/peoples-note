@@ -10,8 +10,8 @@
 class NoteListView : public HTMLayoutWindow, public INoteListView
 {
 	MacroEvent(About)
-	MacroEvent(AllNotebooksSelected)
 	MacroEvent(ClearSearch)
+	MacroEvent(DeleteNote)
 	MacroEvent(Import)
 	MacroEvent(NewInkNote)
 	MacroEvent(NewNote)
@@ -54,7 +54,6 @@ private:
 
 	int startScrollPos;
 
-	element clickTarget;
 	element noteList;
 	element listScroll;
 	element searchBox;
@@ -123,6 +122,8 @@ public:
 
 	virtual void HideSyncButton();
 
+	virtual void SelectNotebook(const Guid & notebook);
+
 	virtual void SetNotebookMenu(const NotebookList & notebooks);
 
 	virtual void SetProfileText(const std::wstring & text);
@@ -161,17 +162,21 @@ public:
 
 private:
 
+	void BeginStandardGestureRecognition(const POINT & position);
+
 	static HMENU CreateMainMenu(HMENU notebookMenu, HMENU viewMenu);
 
 	static HMENU CreateNotebookMenu();
 
 	static HMENU CreateViewMenu();
 
-	element GetChild(element parent, element descendant);
+	static element GetChild(element parent, element descendant);
 
 	int GetScrollPos();
 
 	static bool IsChild(element child, element parent);
+
+	bool IsNoteSelected();
 
 	void OnSearch();
 
@@ -195,6 +200,7 @@ private:
 
 	void OnActivate       (Msg<WM_ACTIVATE>       & msg);
 	void OnCommand        (Msg<WM_COMMAND>        & msg);
+	void OnContextMenu    (Msg<WM_CONTEXTMENU>    & msg);
 	void OnCaptureChanged (Msg<WM_CAPTURECHANGED> & msg);
 	void OnDestroy        (Msg<WM_DESTROY>        & msg);
 	void OnMouseDown      (Msg<WM_LBUTTONDOWN>    & msg);

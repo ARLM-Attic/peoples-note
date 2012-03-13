@@ -36,11 +36,11 @@ NoteListPresenter::NoteListPresenter
 	noteListModel.ConnectNoteChanged
 		(bind(&NoteListPresenter::OnNoteChanged, this));
 
+	noteListView.ConnectDeleteNote
+		(bind(&NoteListPresenter::OnDeleteNote, this));
+
 	noteListModel.ConnectNoteListChanged
 		(bind(&NoteListPresenter::OnNoteListChanged, this));
-
-	noteListView.ConnectAllNotebooksSelected
-		(bind(&NoteListPresenter::OnAllNotebooksSelected, this));
 
 	noteListView.ConnectNotebookSelected
 		(bind(&NoteListPresenter::OnNotebookSelected, this));
@@ -75,14 +75,10 @@ NoteListPresenter::NoteListPresenter
 // event handlers
 //---------------
 
-void NoteListPresenter::OnAllNotebooksSelected()
+void NoteListPresenter::OnDeleteNote()
 {
-	Transaction transaction(userModel);
-	SelectAllNotebooks();
-	UpdateTitle();
-	ResetSearch();
+	userModel.DeleteNote(noteListView.GetSelectedNoteGuid());
 	noteListModel.Reload();
-	UpdateSyncCounter();
 }
 
 void NoteListPresenter::OnNoteChanged()
@@ -212,19 +208,11 @@ void NoteListPresenter::ResetSearch()
 	noteListView.SetSearchButtonToSearch();
 }
 
-void NoteListPresenter::SelectAllNotebooks()
-{
-	userModel.MakeNotebookLastUsed(Guid::GetEmpty());
-}
-
 void NoteListPresenter::UpdateActiveNotebook()
 {
-	Notebook notebook;
-	userModel.GetNotebook
-		( noteListView.GetSelectedNotebookGuid()
-		, notebook
-		);
-	userModel.MakeNotebookLastUsed(notebook.guid);
+	Guid selectedNotebook(noteListView.GetSelectedNotebookGuid());
+	userModel.MakeNotebookLastUsed(selectedNotebook);
+	noteListView.SelectNotebook(selectedNotebook);
 }
 
 void NoteListPresenter::UpdateNotebookListView()
@@ -232,6 +220,10 @@ void NoteListPresenter::UpdateNotebookListView()
 	NotebookList notebooks;
 	userModel.GetNotebooks(notebooks);
 	noteListView.SetNotebookMenu(notebooks);
+
+	Guid lastUsedNotebook("");
+	userModel.GetLastUsedNotebook(lastUsedNotebook);
+	noteListView.SelectNotebook(lastUsedNotebook);
 }
 
 void NoteListPresenter::UpdateNotebookTitle()
