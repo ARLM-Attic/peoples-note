@@ -26,6 +26,11 @@
 				background-image    : url(button-disabled.png);
 				color               : black;
 			}
+			button:active
+			{
+				background-image    : url(button-pressed.png);
+				color               : black;
+			}
 			h1
 			{
 				font-size   : 27px;
@@ -59,7 +64,8 @@
 			<tr><td>Path:</td><td #path></td></tr>
 			<tr><td>Size:</td><td #size></td></tr>
 		</table>
+		<button #compact>Compact</button>
 		<button #move>Move to storage card</button>
-		<p #error></p>
+		<p #message></p>
 	</body>
 </html>
