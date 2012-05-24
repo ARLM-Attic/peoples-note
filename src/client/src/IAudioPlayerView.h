@@ -1,18 +1,19 @@
 #pragma once
 #include "ISignalProvider.h"
 
-class IVoiceEditorView : public ISignalProvider
+class IAudioPlayerView : public ISignalProvider
 {
 	MacroIEvent(Cancel)
 	MacroIEvent(Hide)
 	MacroIEvent(Play)
 	MacroIEvent(Show)
 	MacroIEvent(Stop)
-	MacroIEvent(Record)
 
 public:
 
 	virtual void Hide() = 0;
+
+	virtual void SetFileName(std::wstring & name) = 0;
 
 	virtual void Show() = 0;
 };

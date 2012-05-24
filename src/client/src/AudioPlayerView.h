@@ -1,16 +1,15 @@
 #pragma once
-#include "IVoiceEditorView.h"
+#include "IAudioPlayerView.h"
 
 #include "HTMLayoutWindow.h"
 
-class VoiceEditorView : public HTMLayoutWindow, public IVoiceEditorView
+class AudioPlayerView : public HTMLayoutWindow, public IAudioPlayerView
 {
 	MacroEvent(Cancel)
 	MacroEvent(Hide)
 	MacroEvent(Play)
 	MacroEvent(Show)
 	MacroEvent(Stop)
-	MacroEvent(Record)
 
 // data
 
@@ -24,7 +23,7 @@ private:
 
 public:
 
-	VoiceEditorView
+	AudioPlayerView
 		( HINSTANCE         instance
 		, bool              highRes
 		, IHtmlDataLoader & htmlDataLoader
@@ -34,11 +33,13 @@ public:
 
 	virtual void RegisterEventHandlers();
 
-// IVoiceEditorView implementation
+// IAudioPlayerView implementation
 
 public:
 
 	virtual void Hide();
+
+	virtual void SetFileName(std::wstring & name);
 
 	virtual void Show();
 
@@ -57,9 +58,8 @@ private:
 
 private:
 
-	void OnVoicePlay   (BEHAVIOR_EVENT_PARAMS * params);
-	void OnVoiceRecord (BEHAVIOR_EVENT_PARAMS * params);
-	void OnVoiceStop   (BEHAVIOR_EVENT_PARAMS * params);
+	void OnVoicePlay(BEHAVIOR_EVENT_PARAMS * params);
+	void OnVoiceStop(BEHAVIOR_EVENT_PARAMS * params);
 
 // utility functions
 

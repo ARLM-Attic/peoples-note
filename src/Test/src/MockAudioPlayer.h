@@ -5,7 +5,12 @@ class MockAudioPlayer : public IAudioPlayer
 {
 public:
 
-	virtual void Play(LPCWSTR path);
+	bool isPlaying;
+	boost::shared_ptr<ISqlBlob> blob;
+
+public:
+
+	virtual void Play(boost::shared_ptr<ISqlBlob> & blob);
 
 	virtual void Stop();
 };

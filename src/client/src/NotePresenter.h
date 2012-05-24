@@ -46,6 +46,7 @@ private:
 	void OnCloseNote();
 	void OnDeleteNote();
 	void OnOpenNote();
+	void OnPlayAttachment();
 	void OnTagListCommitted();
 	void OnToggleMaximize();
 
@@ -55,5 +56,7 @@ private:
 
 	static AttachmentViewInfo ConvertAttachment(const Attachment & attachment);
 
-	static const wchar_t * GetAttachmentImageUrl(const Attachment & mime);
+	static const wchar_t * GetAttachmentImageUrl(const Attachment & attachment);
+
+	static bool IsAttachmentPlayable(const Attachment & attachment);
 };

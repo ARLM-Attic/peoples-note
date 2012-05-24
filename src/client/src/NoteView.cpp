@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iterator>
+#include <utility>
 
 #include <boost/scope_exit.hpp>
 
@@ -120,12 +121,20 @@ wstring NoteView::GetSavePath
 	return &fileNameChars[0];
 }
 
-Guid NoteView::GetSelecteAttachmentGuid()
+Guid NoteView::GetSelectedAttachmentGuid()
 {
-	const wchar_t * value(element(FindFirstElement("#attachments")).get_attribute("value"));
-	if (value)
-		return Guid(value);
+	const int index(GetSelectedAttachmentIndex());
+	if (index >= 0)
+		return attachments[index].Guid;
 	return Guid::GetEmpty();
+}
+
+wstring NoteView::GetSelectedAttachmentName()
+{
+	const int index(GetSelectedAttachmentIndex());
+	if (index >= 0)
+		return attachments[index].Text;
+	return L"";
 }
 
 void NoteView::GetTitle(std::wstring & text)
@@ -221,7 +230,8 @@ void NoteView::SetNote
 	if (TrySetHtml(utf8, utf8Chars.size()))
 	{
 		ConnectBehavior("#body input", BUTTON_STATE_CHANGED, &NoteView::OnInput);
-		SetAttachments(attachments);
+		this->attachments.assign(attachments.begin(), attachments.end());
+		UpdateAttachments();
 	}
 	else
 	{
@@ -270,6 +280,12 @@ POINT NoteView::GetScrollPos()
 	element body(FindFirstElement("#note"));
 	body.get_scroll_info(scrollPos, viewRect, contentSize);
 	return scrollPos;
+}
+
+int NoteView::GetSelectedAttachmentIndex()
+{
+	return element(FindFirstElement("#attachments"))
+		.get_attribute_int("value", -1);
 }
 
 void NoteView::Reset()
@@ -329,9 +345,9 @@ ATOM NoteView::RegisterClass(const wstring & wndClass)
 	return ::RegisterClass(&wc);
 }
 
-void NoteView::SetAttachments(const AttachmentViewInfoList & attachments)
+void NoteView::UpdateAttachments()
 {
-	DisconnectBehavior("#attachments > option");
+	DisconnectBehavior("#attachments *");
 
 	element list(FindFirstElement("#attachments"));
 
@@ -340,14 +356,39 @@ void NoteView::SetAttachments(const AttachmentViewInfoList & attachments)
 	foreach (element & e, old)
 		e.destroy();
 
-	foreach (const AttachmentViewInfo & attachment, attachments)
+	for (int i(0), size(attachments.size()); i != size; ++i)
 	{
-		element e(element::create("option"));
-		list.insert(e, list.children_count() - 1);
-		e.set_style_attribute("background-image", attachment.Icon.c_str());
-		e.set_attribute("value", ConvertToUnicode(attachment.Guid).c_str());
-		e.set_text(attachment.Text.c_str());
-		ConnectBehavior(e, BUTTON_CLICK, &NoteView::OnAttachment);
+		wchar_t value[16];
+		_itow(i, value, 10);
+
+		const AttachmentViewInfo & attachment(attachments[i]);
+
+		wstring guid(ConvertToUnicode(attachment.Guid).c_str());
+
+		element content (element::create("div"));
+
+		element option(element::create("option"));
+		option.append(content);
+
+		if (attachment.IsPlayable)
+		{
+			element play(element::create("img"));
+			play.set_attribute("src",   L"play-attachment.png");
+			play.set_attribute("value", guid.c_str());
+			play.set_attribute("class", L"play");
+			option.append(play);
+			
+			ConnectBehavior(play, BUTTON_CLICK, &NoteView::OnPlayAttachment);
+		}
+
+		list.insert(option, list.children_count() - 1);
+
+		content.set_style_attribute("background-image", attachment.Icon.c_str());
+		content.set_attribute("value", value);
+		content.set_attribute("class", L"content");
+		content.set_text(attachment.Text.c_str());
+
+		ConnectBehavior(content, BUTTON_CLICK, &NoteView::OnAttachment);
 	}
 }
 
@@ -361,6 +402,12 @@ void NoteView::SetChrome(bool enable)
 		};
 	for (int i(0); i != GetArraySize(blocks); ++i)
 		blocks[i].set_style_attribute("display", enable ? L"block" : L"none");
+
+	element body(FindFirstElement("#body"));
+	if (enable)
+		body.set_attribute("chrome", L"");
+	else
+		body.remove_attribute("chrome");
 }
 
 void NoteView::SetScrollPos(POINT pos)
@@ -559,8 +606,9 @@ void NoteView::ProcessMessage(WndMsg &msg)
 void NoteView::OnAttachment(BEHAVIOR_EVENT_PARAMS * params)
 {
 	const wchar_t * value(element(params->heTarget).get_attribute("value"));
-	if (value)
-		element(FindFirstElement("#attachments")).set_attribute("value", value);
+	if (!value)
+		return;
+	element(FindFirstElement("#attachments")).set_attribute("value", value);
 	SignalAttachment();
 }
 
@@ -573,4 +621,13 @@ void NoteView::OnInput(BEHAVIOR_EVENT_PARAMS * params)
 		dirtyCheckboxIds.insert(id);
 	else
 		dirtyCheckboxIds.erase(i);
+}
+
+void NoteView::OnPlayAttachment(BEHAVIOR_EVENT_PARAMS * params)
+{
+	const wchar_t * value(element(params->heTarget).get_attribute("value"));
+	if (!value)
+		return;
+	element(FindFirstElement("#attachments")).set_attribute("value", value);
+	SignalPlayAttachment();
 }

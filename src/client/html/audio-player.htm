@@ -15,14 +15,15 @@
 			}
 			h1
 			{
-				font-size   : 48px;
+				font-size   : 50px;
 				font-weight : normal;
 				margin      : 8px 20px;
 			}
-			input
+			h2
 			{
-				margin : 16px 20px;
-				width  : 100%%;
+				font-size   : 28px;
+				font-weight : normal;
+				margin      : 8px 20px 40px 20px;
 			}
 			.row
 			{
@@ -45,14 +46,6 @@
 			{
 				background : url(voice-play-pressed.png);
 			}
-			#record
-			{
-				background : url(voice-record.png);
-			}
-			#record:active
-			{
-				background : url(voice-record-pressed.png);
-			}
 			#stop
 			{
 				background : url(voice-stop.png);
@@ -73,13 +66,12 @@
 		</style>
 	</head>
 	<body>
-		<h1>Voice note<br>(under construction)</h1>
-		<input #title type="text" />
+		<h1>Audio attachment</h1>
+		<h2>File name: <span #name>Audio attachment</span></h2>
 		<div #controls>
 			<div .spacer />
-			<widget type="button" #record />
-			<widget type="button" #stop   />
-			<widget type="button" #play   />
+			<widget type="button" #stop />
+			<widget type="button" #play />
 			<div .spacer />
 		</div>
 		<div .row #message></div>

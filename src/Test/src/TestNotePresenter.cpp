@@ -95,18 +95,6 @@ BOOST_FIXTURE_TEST_CASE
 		);
 }
 
-BOOST_FIXTURE_TEST_CASE
-	( NotePresenter_LoadingData
-	, NotePresenterFixture
-	)
-{
-	userModel.resources.push_back(Resource());
-	userModel.resources.back().Data.push_back(2);
-	userModel.resources.back().Data.push_back(3);
-	userModel.resources.back().Data.push_back(5);
-	userModel.resources.back().Hash = "test";
-}
-
 // Note: the output of this test depends on your time zone.
 BOOST_FIXTURE_TEST_CASE
 	( NotePresenter_OpenNote
@@ -134,7 +122,7 @@ BOOST_FIXTURE_TEST_CASE
 
 	BOOST_CHECK_EQUAL(noteView.body,       L"<p>test-note</p>");
 	BOOST_CHECK_EQUAL(noteView.title,      L"note-title");
-	BOOST_CHECK_EQUAL(noteView.subtitle,   L"created on 1970-01-01 01:00");
+	BOOST_CHECK_EQUAL(noteView.subtitle,   L"created on 1970-01-01 02:00");
 	BOOST_CHECK(noteView.attachments.empty());
 	BOOST_CHECK(noteView.enableChrome);
 	BOOST_CHECK(noteView.isShown);
@@ -146,7 +134,7 @@ BOOST_FIXTURE_TEST_CASE
 
 	BOOST_CHECK_EQUAL(noteView.body,     L"<p>test-note</p>");
 	BOOST_CHECK_EQUAL(noteView.title,    L"note-title");
-	BOOST_CHECK_EQUAL(noteView.subtitle, L"created on 1970-01-01 01:00\ntags: tag-0, tag-1");
+	BOOST_CHECK_EQUAL(noteView.subtitle, L"created on 1970-01-01 02:00\ntags: tag-0, tag-1");
 	BOOST_CHECK(noteView.isShown);
 }
 

@@ -4,55 +4,44 @@
 #include "stdafx.h"
 #include "AudioPlayer.h"
 
-AudioPlayer::AudioPlayer()
-{
-	::InitializeCriticalSection(&criticalSection);
+#include "ISqlBlob.h"
 
+using namespace boost;
+
+AudioPlayer::AudioPlayer()
+	: isPlaying (false)
+	, thread    (NULL)
+{
 	waveBlocks = AllocateBlocks(blockSize, blockCount);
 }
 
 AudioPlayer::~AudioPlayer()
 {
-	::DeleteCriticalSection(&criticalSection);
+	if (thread != NULL)
+		::CloseHandle(thread);
 	DeallocateBlocks(waveBlocks);
 }
 
-void AudioPlayer::Play(LPCWSTR path)
+void AudioPlayer::Play(shared_ptr<ISqlBlob> & blob)
 {
-	std::ifstream file(path, std::ios::binary);
-
-	WAVEFORMATEX format;
-	int          dataSize;
-	ReadWavHeader(file, format, dataSize);
-
-	WaveOut waveOut(WAVE_MAPPER, &format, &AudioPlayer::WaveOutProc, this, WAVE_ALLOWSYNC);
-
-	std::vector<char> buffer(bufferSize);
-
-	waveCurrentBlock   = 0;
-	waveFreeBlockCount = blockCount;
-	while(dataSize > 0 && !file.eof())
-	{
-		file.read(&buffer[0], min(dataSize, bufferSize));
-		WriteWav(waveOut, &buffer[0], file.gcount());
-		dataSize -= file.gcount();
-	}
-	FlushWav(waveOut);
-
-	while(waveFreeBlockCount < blockCount)
-		Sleep(10);
-
-	for(int i(0); i < waveFreeBlockCount; i++) 
-	{
-		if(waveBlocks[i].dwFlags & WHDR_PREPARED)
-			waveOut.UnprepareHeader(&waveBlocks[i]);
-	}
+	Stop();
+	this->blob = blob;
+	thread = ::CreateThread
+		( NULL               // lpsa
+		, 0                  // cbStack
+		, &AudioPlayer::Play // lpStartAddr
+		, this               // lpvThreadParam
+		, 0                  // fdwCreate
+		, NULL               // lpIDThread
+		);
 }
 
 void AudioPlayer::Stop()
 {
-//	if (waveOut)
-//		::waveOutReset(waveOut);
+	isStopRequested = true;
+	::WaitForSingleObject(thread, INFINITE);
+	isStopRequested = false;
+	this->blob.reset();
 }
 
 //------------------
@@ -83,48 +72,113 @@ void AudioPlayer::DeallocateBlocks(WAVEHDR * blocks)
 	delete [] blocks;
 }
 
+void AudioPlayer::Play()
+{
+	WAVEFORMATEX format;
+	int          dataSize;
+	ReadWavHeader(*blob, format, dataSize);
+
+	WaveOut waveOut(WAVE_MAPPER, &format, &AudioPlayer::WaveOutProc, this, WAVE_ALLOWSYNC);
+
+	Blob buffer(bufferSize);
+
+	try
+	{
+		waveCurrentBlock   = 0;
+		waveFreeBlockCount = blockCount;
+		int offset(wavHeaderSize);
+		while(dataSize > 0)
+		{
+			if (isStopRequested)
+			{
+				waveOut.Reset();
+				UnprepareHeaders(waveOut);
+				return;
+			}
+
+			blob->Read(offset, min(dataSize, bufferSize), buffer);
+			if (buffer.empty())
+				break;
+			WriteWav(waveOut, &buffer[0], buffer.size());
+			offset   += buffer.size();
+			dataSize -= buffer.size();
+		}
+	}
+	catch (const std::exception &)
+	{
+		// try to do with what we have
+	}
+	FlushWav(waveOut);
+
+	while(waveFreeBlockCount < blockCount)
+		Sleep(10);
+
+	UnprepareHeaders(waveOut);
+}
+
+DWORD WINAPI AudioPlayer::Play(LPVOID param)
+{
+	reinterpret_cast<AudioPlayer*>(param)->Play();
+	return 0;
+}
+
 void AudioPlayer::ReadWavHeader
-	( std::istream & stream
+	( ISqlBlob     & blob
 	, WAVEFORMATEX & format
 	, int          & dataSize
 	)
 {
-	DWORD magicNumber;
-	stream.read(reinterpret_cast<char*>(&magicNumber), 4);
+	Blob buffer(wavHeaderSize);
+	blob.Read(0, wavHeaderSize, buffer);
+	ReadWavHeader(&buffer[0], format, dataSize);
+}
+
+void AudioPlayer::ReadWavHeader
+	( const BYTE   * data
+	, WAVEFORMATEX & format
+	, int          & dataSize
+	)
+{
+	DWORD magicNumber(*reinterpret_cast<const DWORD *>(data + 0));
 	if (magicNumber != 0x46464952) // "RIFF"
 		throw std::exception("Wrong file format.");
 
-	stream.read(reinterpret_cast<char*>(&magicNumber), 4);
-
-	DWORD formatName;
-	stream.read(reinterpret_cast<char*>(&formatName), 4);
+	DWORD formatName(*reinterpret_cast<const DWORD *>(data + 8));
 	if (formatName != 0x45564157) // "WAVE"
 		throw std::exception("Wrong file format.");
 
-	DWORD formatHeader;
-	stream.read(reinterpret_cast<char*>(&formatHeader), 4);
+	DWORD formatHeader(*reinterpret_cast<const DWORD *>(data + 12));
 	if (formatHeader != 0x20746D66) // " fmt"
 		throw std::exception("Wrong file format.");
 
-	stream.read(reinterpret_cast<char*>(&format.cbSize), 4);
+	format.cbSize = static_cast<WORD>(*reinterpret_cast<const DWORD *>(data + 16));
 	if (format.cbSize != 16)
 		throw std::exception("Wrong file format.");
 
-	stream.read(reinterpret_cast<char*>(&format.wFormatTag),      2);
-	stream.read(reinterpret_cast<char*>(&format.nChannels),       2);
-	stream.read(reinterpret_cast<char*>(&format.nSamplesPerSec),  4);
-	stream.read(reinterpret_cast<char*>(&format.nAvgBytesPerSec), 4);
-	stream.read(reinterpret_cast<char*>(&format.nBlockAlign),     2);
-	stream.read(reinterpret_cast<char*>(&format.wBitsPerSample),  2);
 
-	DWORD dataHeader;
-	stream.read(reinterpret_cast<char*>(&dataHeader), 4);
+	format.wFormatTag      = *reinterpret_cast<const  WORD *>(data + 20);
+	format.nChannels       = *reinterpret_cast<const  WORD *>(data + 22);
+	format.nSamplesPerSec  = *reinterpret_cast<const DWORD *>(data + 24);
+	format.nAvgBytesPerSec = *reinterpret_cast<const DWORD *>(data + 28);
+	format.nBlockAlign     = *reinterpret_cast<const  WORD *>(data + 32);
+	format.wBitsPerSample  = *reinterpret_cast<const  WORD *>(data + 34);
+
+	DWORD dataHeader(*reinterpret_cast<const DWORD *>(data + 36));
 	if (dataHeader != 0x61746164) // "data"
 		throw std::exception("Wrong file format.");
 
-	stream.read(reinterpret_cast<char*>(&dataSize), 4);
+	dataSize = *reinterpret_cast<const DWORD *>(data + 40);
 	if (dataSize < 0)
 		throw std::exception("Wrong file format.");
+}
+
+void AudioPlayer::UnprepareHeaders(WaveOut & waveOut)
+{
+	for(int i(0); i < waveFreeBlockCount; i++) 
+	{
+		if(waveBlocks[i].dwFlags & WHDR_PREPARED)
+			waveOut.UnprepareHeader(&waveBlocks[i]);
+	}
 }
 
 void AudioPlayer::WaveOutProc
@@ -149,9 +203,7 @@ void AudioPlayer::WaveOutProc
 	if(message != WOM_DONE)
 		return;
 
-	EnterCriticalSection(&criticalSection);
-	waveFreeBlockCount++;
-	LeaveCriticalSection(&criticalSection);
+	InterlockedIncrement(&waveFreeBlockCount);
 }
 
 void AudioPlayer::FlushWav(WaveOut & waveOut)
@@ -167,8 +219,9 @@ void AudioPlayer::FlushWav(WaveOut & waveOut)
 	}
 }
 
-void AudioPlayer::WriteWav(WaveOut & waveOut, char * data, int size)
+void AudioPlayer::WriteWav(WaveOut & waveOut, const BYTE * data, int size)
 {
+	// copy data into blocks in a circular buffer
 	while(size > 0)
 	{
 		WAVEHDR * current(&waveBlocks[waveCurrentBlock]);
@@ -177,27 +230,30 @@ void AudioPlayer::WriteWav(WaveOut & waveOut, char * data, int size)
 			waveOut.UnprepareHeader(current);
 
 		const int remainder(blockSize - current->dwUser);
+
+		// write a partial block
 		if (size < remainder)
 		{
 			::memcpy(current->lpData + current->dwUser, data, size);
 			current->dwUser += size;
 			break;
 		}
+
+		// write a complete block
 		::memcpy(current->lpData + current->dwUser, data, remainder);
 		size -= remainder;
 		data += remainder;
 		current->dwBufferLength = blockSize;
 
+		// enqueue the block for playback
 		waveOut.PrepareHeader(current);
 		waveOut.Write(current);
 
-		::EnterCriticalSection(&criticalSection);
-		waveFreeBlockCount--;
-		::LeaveCriticalSection(&criticalSection);
+		InterlockedDecrement(&waveFreeBlockCount);
 
+		// move onto the next block, as soon as one becomes available
 		while(waveFreeBlockCount == 0)
 			Sleep(10);
-
 		waveCurrentBlock = (waveCurrentBlock + 1) % blockCount;
 		current->dwUser = 0;
 	}

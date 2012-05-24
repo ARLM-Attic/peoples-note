@@ -1,26 +1,24 @@
 #pragma once
-#include "IVoiceEditorView.h"
+#include "IAudioPlayerView.h"
 
-class MockVoiceEditorView : public IVoiceEditorView
+class MockAudioPlayerView : public IAudioPlayerView
 {
 	MacroTestEvent(Cancel)
 	MacroTestEvent(Hide)
 	MacroTestEvent(Play)
-	MacroTestEvent(Record)
 	MacroTestEvent(Show)
 	MacroTestEvent(Stop)
 
 public:
 
-	bool isShown;
-
-public:
-
-	MockVoiceEditorView();
+	bool         isShown;
+	std::wstring name;
 
 public:
 
 	virtual void Hide();
+
+	virtual void SetFileName(std::wstring & name);
 
 	virtual void Show();
 };

@@ -431,7 +431,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\AudioAttachmentPresenter.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\AudioPlayer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\AudioPlayerView.cpp"
 				>
 			</File>
 			<File
@@ -886,7 +894,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\AudioAttachmentPresenter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\AudioPlayer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\AudioPlayerView.h"
 				>
 			</File>
 			<File
@@ -1019,6 +1035,10 @@
 			</File>
 			<File
 				RelativePath=".\src\IAudioPlayer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\IAudioPlayerView.h"
 				>
 			</File>
 			<File
@@ -1520,11 +1540,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\clear.png"
+				RelativePath=".\html-lr\clear.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\clear.png"
+				RelativePath=".\html\clear.png"
 				>
 			</File>
 			<File
@@ -1548,19 +1568,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\corner.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html-lr\corner.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\dropdown-arrow.png"
+				RelativePath=".\html\corner.png"
 				>
 			</File>
 			<File
 				RelativePath=".\html-lr\dropdown-arrow.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\dropdown-arrow.png"
 				>
 			</File>
 			<File
@@ -1580,19 +1600,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\gradient-64.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html-lr\gradient-64.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\ink-note-pressed.png"
+				RelativePath=".\html\gradient-64.png"
 				>
 			</File>
 			<File
 				RelativePath=".\html-lr\ink-note-pressed.png"
+				>
+			</File>
+			<File
+				RelativePath=".\html\ink-note-pressed.png"
 				>
 			</File>
 			<File
@@ -1604,19 +1624,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html\inputshadow.png"
-				>
-			</File>
-			<File
 				RelativePath=".\html-lr\inputshadow.png"
 				>
 			</File>
 			<File
-				RelativePath=".\html\menu-check.png"
-				>
-			</File>
-			<File
-				RelativePath=".\html-lr\menu-check.png"
+				RelativePath=".\html\inputshadow.png"
 				>
 			</File>
 			<File
@@ -1902,6 +1914,16 @@
 				>
 			</File>
 			<File
+				RelativePath=".\html\audio-player.htm"
+				DeploymentContent="true"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\audio-player.htm"
+				DeploymentContent="true"
+				>
+			</File>
+			<File
 				RelativePath=".\html\main.htm"
 				>
 			</File>
@@ -1910,15 +1932,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\menu.css"
-				>
-			</File>
-			<File
 				RelativePath=".\html\menu.css"
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\note-edit.htm"
+				RelativePath=".\html-lr\menu.css"
 				>
 			</File>
 			<File
@@ -1926,11 +1944,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\note-view.htm"
+				RelativePath=".\html-lr\note-edit.htm"
 				>
 			</File>
 			<File
 				RelativePath=".\html\note-view.htm"
+				>
+			</File>
+			<File
+				RelativePath=".\html-lr\note-view.htm"
 				>
 			</File>
 			<File
@@ -1942,11 +1964,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\html-lr\profile.htm"
+				RelativePath=".\html\profile.htm"
 				>
 			</File>
 			<File
-				RelativePath=".\html\profile.htm"
+				RelativePath=".\html-lr\profile.htm"
 				>
 			</File>
 			<File

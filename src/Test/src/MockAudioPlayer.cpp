@@ -1,10 +1,15 @@
 #include "stdafx.h"
 #include "MockAUdioPlayer.h"
 
-void MockAudioPlayer::Play(LPCWSTR path)
+using namespace boost;
+
+void MockAudioPlayer::Play(shared_ptr<ISqlBlob> & blob)
 {
+	isPlaying = true;
+	this->blob = blob;
 }
 
 void MockAudioPlayer::Stop()
 {
+	isPlaying = false;
 }

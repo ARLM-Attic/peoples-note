@@ -6,23 +6,24 @@
 			{
 				background-color    : #f0ec40;
 				background-image    : url(card-top.png);
-				background-position : 24px 288px 0px 32px;
+				background-position : 12px 144px 0px 16px;
 				background-repeat   : expand;
 				color               : black;
-				font-size           : 28px;
+				font-size           : 14px;
 				margin              : 0px;
-				padding             : 24px 0px 0px 0px;
+				padding             : 12px 0px 0px 0px;
 			}
 			h1
 			{
-				font-size   : 48px;
+				font-size   : 25px;
 				font-weight : normal;
-				margin      : 8px 20px;
+				margin      : 4px 10px;
 			}
-			input
+			h2
 			{
-				margin : 16px 20px;
-				width  : 100%%;
+				font-size   : 14px;
+				font-weight : normal;
+				margin      : 4px 10px 20 10;
 			}
 			.row
 			{
@@ -45,14 +46,6 @@
 			{
 				background : url(voice-play-pressed.png);
 			}
-			#record
-			{
-				background : url(voice-record.png);
-			}
-			#record:active
-			{
-				background : url(voice-record-pressed.png);
-			}
 			#stop
 			{
 				background : url(voice-stop.png);
@@ -65,21 +58,20 @@
 			{
 				background-repeat : no-repeat;
 				border-style      : none;
-				height            : 114px;
+				height            : 57px;
 				margin            : 0px;
 				padding           : 0px;
-				width             : 116px;
+				width             : 58px;
 			}
 		</style>
 	</head>
 	<body>
-		<h1>Voice note<br>(under construction)</h1>
-		<input #title type="text" />
+		<h1>Audio attachment</h1>
+		<h2>File name: <span #name>Audio attachment</span></h2>
 		<div #controls>
 			<div .spacer />
-			<widget type="button" #record />
-			<widget type="button" #stop   />
-			<widget type="button" #play   />
+			<widget type="button" #stop />
+			<widget type="button" #play />
 			<div .spacer />
 		</div>
 		<div .row #message></div>

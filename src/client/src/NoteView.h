@@ -15,6 +15,7 @@ class NoteView : public HTMLayoutWindow, public INoteView
 	MacroEvent(Delete)
 	MacroEvent(Edit)
 	MacroEvent(EditTags)
+	MacroEvent(PlayAttachment)
 	MacroEvent(ToggleMaximize)
 
 private:
@@ -30,6 +31,8 @@ private:
 	NoteViewGestureProcessor gestureProcessor;
 
 	Note note;
+
+	AttachmentViewInfoList attachments;
 
 	POINT startScrollPos;
 
@@ -72,7 +75,9 @@ public:
 		, const std::wstring & directory
 		);
 
-	virtual Guid GetSelecteAttachmentGuid();
+	virtual Guid GetSelectedAttachmentGuid();
+
+	virtual std::wstring GetSelectedAttachmentName();
 
 	virtual void GetTitle(std::wstring & text);
 
@@ -109,15 +114,17 @@ private:
 
 	POINT GetScrollPos();
 
+	virtual int GetSelectedAttachmentIndex();
+
 	ATOM RegisterClass(const std::wstring & wndClass);
 
 	void Reset();
 
-	void SetAttachments(const AttachmentViewInfoList & attachments);
-
 	void SetChrome(bool enable);
 
 	void SetScrollPos(POINT pos);
+
+	void UpdateAttachments();
 
 	void UpdateScrollbar();
 
@@ -152,6 +159,7 @@ private:
 
 private:
 
-	void OnAttachment (BEHAVIOR_EVENT_PARAMS * params);
-	void OnInput      (BEHAVIOR_EVENT_PARAMS * params);
+	void OnAttachment     (BEHAVIOR_EVENT_PARAMS * params);
+	void OnInput          (BEHAVIOR_EVENT_PARAMS * params);
+	void OnPlayAttachment (BEHAVIOR_EVENT_PARAMS * params);
 };

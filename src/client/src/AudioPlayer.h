@@ -3,23 +3,34 @@
 
 #include "WaveOut.h"
 
-#include <fstream>
-
 typedef struct tWAVEFORMATEX WAVEFORMATEX;
 
 class AudioPlayer : public IAudioPlayer
 {
 private:
 
-	CRITICAL_SECTION criticalSection;
+	// This critical section synchronizes three threads:
+	// - main (UI) thread
+	// - audio loading thread
+	// - audio callback thread
+	CRITICAL_SECTION lock;
+
+	HANDLE thread;
+
+	boost::shared_ptr<ISqlBlob> blob;
+
+	bool isPlaying;
+	bool isStopRequested;
 
 	WAVEHDR * waveBlocks;
-	int waveCurrentBlock;
-	int waveFreeBlockCount;
+	long waveCurrentBlock;
+	long waveFreeBlockCount;
 
 	static const int blockCount = 20;
 	static const int blockSize  = 4096;
 	static const int bufferSize = 2048;
+
+	static const int wavHeaderSize = 44;
 
 public:
 
@@ -28,7 +39,7 @@ public:
 
 public:
 
-	virtual void Play(LPCWSTR path);
+	virtual void Play(boost::shared_ptr<ISqlBlob> & blob);
 
 	virtual void Stop();
 
@@ -40,11 +51,25 @@ private:
 
 	static void DeallocateBlocks(WAVEHDR * blocks);
 
+	void FlushWav(WaveOut & waveOut);
+
+	void Play();
+
+	static DWORD WINAPI Play(LPVOID param);
+
 	static void ReadWavHeader
-		( std::istream & stream
+		( ISqlBlob     & blob
 		, WAVEFORMATEX & format
 		, int          & dataSize
 		);
+
+	static void ReadWavHeader
+		( const BYTE   * data
+		, WAVEFORMATEX & format
+		, int          & dataSize
+		);
+
+	void UnprepareHeaders(WaveOut & waveOut);
 
 	static void (CALLBACK WaveOutProc)
 		( HANDLE waveOut
@@ -61,7 +86,5 @@ private:
 		, DWORD  parameter2
 		);
 
-	void FlushWav(WaveOut & waveOut);
-
-	void WriteWav(WaveOut & waveOut, char * data, int size);
+	void WriteWav(WaveOut & waveOut, const BYTE * data, int size);
 };
