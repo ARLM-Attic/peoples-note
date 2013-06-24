@@ -5,6 +5,7 @@
 #include "MockAudioPlayerView.h"
 #include "MockCredentialsModel.h"
 #include "MockNoteView.h"
+#include "MockSqlBlob.h"
 #include "MockUserModel.h"
 
 using namespace boost;
@@ -67,6 +68,29 @@ BOOST_FIXTURE_TEST_CASE
 	, AudioAttachmentPresenterFixture
 	)
 {
+	// empty GUID
+
+	audioPlayer.isPlaying = false;
+
+	noteView.selectedAttachment.Guid = Guid::GetEmpty();
+
+	boost::shared_ptr<MockSqlBlob> sqlBlob(make_shared<MockSqlBlob>());
+	sqlBlob->data.push_back(7);
+	userModel.resourceData = sqlBlob;
+
+	audioPlayerView.SignalPlay();
+
+	BOOST_CHECK(!audioPlayer.isPlaying);
+	BOOST_CHECK(!audioPlayer.data);
+
+	// non-empty GUID
+
+	noteView.selectedAttachment.Guid = Guid("test");
+
+	audioPlayerView.SignalPlay();
+
+	BOOST_CHECK(audioPlayer.isPlaying);
+	BOOST_CHECK(audioPlayer.data);
 }
 
 BOOST_FIXTURE_TEST_CASE
@@ -74,6 +98,14 @@ BOOST_FIXTURE_TEST_CASE
 	, AudioAttachmentPresenterFixture
 	)
 {
+	audioPlayerView.isShown = false;
+
+	noteView.selectedAttachment.Text = L"test";
+
+	noteView.SignalPlayAttachment();
+
+	BOOST_CHECK(audioPlayerView.isShown);
+	BOOST_CHECK_EQUAL(audioPlayerView.name, L"test");
 }
 
 BOOST_FIXTURE_TEST_CASE
@@ -81,6 +113,11 @@ BOOST_FIXTURE_TEST_CASE
 	, AudioAttachmentPresenterFixture
 	)
 {
+	credentialsModel.username = L"test-user";
+
+	audioPlayerView.SignalShow();
+
+	BOOST_CHECK_EQUAL(userModel.loadedAs, L"test-user");
 }
 
 BOOST_FIXTURE_TEST_CASE
@@ -88,4 +125,9 @@ BOOST_FIXTURE_TEST_CASE
 	, AudioAttachmentPresenterFixture
 	)
 {
+	audioPlayer.isPlaying = true;
+
+	audioPlayerView.SignalStop();
+
+	BOOST_CHECK(!audioPlayer.isPlaying);
 }

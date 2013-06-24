@@ -3,10 +3,10 @@
 
 using namespace boost;
 
-void MockAudioPlayer::Play(shared_ptr<ISqlBlob> & blob)
+void MockAudioPlayer::Play(shared_ptr<ISqlBlob> & data)
 {
 	isPlaying = true;
-	this->blob = blob;
+	this->data = data;
 }
 
 void MockAudioPlayer::Stop()

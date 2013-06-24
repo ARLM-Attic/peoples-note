@@ -360,6 +360,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\MockSqlBlob.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\MockSyncModel.cpp"
 				>
 			</File>
@@ -663,6 +667,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\client\src\ISqlBlob.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\MockAboutView.h"
 				>
 			</File>
@@ -764,6 +772,10 @@
 			</File>
 			<File
 				RelativePath=".\src\MockRegistryKey.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\MockSqlBlob.h"
 				>
 			</File>
 			<File
